@@ -1,0 +1,49 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ---------- Node / 前端 ----------
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------- 运行产物 ----------
+artifacts/uploads/*
+!artifacts/uploads/.gitkeep
+artifacts/models/*
+!artifacts/models/.gitkeep
+artifacts/logs/
+*.pth
+*.pt
+*.ckpt
+*.npz
+
+# ---------- 数据集（体积大，不入库） ----------
+data/raw/
+data/processed/
+*.pcap
+*.pcapng
+
+# ---------- 环境与密钥 ----------
+.env
+.env.*
+!.env.example
+
+# ---------- 编辑器 / 系统 ----------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

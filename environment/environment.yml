@@ -1,0 +1,13 @@
+# Conda 环境定义（与 requirements.txt 等价）
+# 创建：conda env create -f environment/environment.yml
+# 激活：conda activate malflow
+name: malflow
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip=24.2
+  - nodejs=18
+  - pip:
+      - -r requirements.txt
