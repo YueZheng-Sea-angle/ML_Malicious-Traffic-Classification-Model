@@ -100,3 +100,23 @@ class StatsResponse(BaseModel):
     running: int
     label_distribution: Dict[str, int]
     average_elapsed_ms: float
+
+
+class EvalSubmitRequest(BaseModel):
+    model_id: Optional[str] = Field(default=None, description="缺省时用当前激活模型")
+    train_ratio: float = Field(default=0.2, ge=0.05, le=0.95,
+                               description="训练集比例（0.05-0.95），其余为测试集")
+    per_class_files: int = Field(default=10, ge=1, le=100,
+                                 description="每类从 real_data 抽取的文件数上限")
+
+
+class EvalJobResponse(BaseModel):
+    job_id: str
+    model_id: str
+    variant: str = Field(description="A=统计基线 / B=统计+n-gram")
+    train_ratio: float
+    per_class_files: int
+    status: str = Field(description="running / succeeded / failed")
+    error: Optional[str] = None
+    elapsed_ms: Optional[int] = None
+    result: Optional[Dict[str, object]] = None

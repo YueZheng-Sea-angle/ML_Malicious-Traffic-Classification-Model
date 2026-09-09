@@ -12,6 +12,7 @@ from typing import Dict, List, Optional
 
 from app.config import get_settings
 from app.services.inference import reload_predictor
+from app.services.model_eval import latest_metrics
 
 try:
     import torch  # noqa: F401
@@ -33,10 +34,14 @@ class ModelRegistry:
         for path in self._sorted_weights():
             meta = _read_checkpoint_meta(path)
             model_id = path.stem
+            eval_ov = latest_metrics(model_id)
             is_ngram = bool((meta or {}).get("ngram_dim")) if meta else "ngram" in model_id
             kind = (meta or {}).get("kind", "torch") if meta else "torch"
             framework = "LightGBM" if kind == "lightgbm" else "PyTorch"
             group = "B · n-gram 增强" if is_ngram else "A · 基线"
+            description = _describe(path.stem, is_ngram, meta)
+            if eval_ov:
+                description += " · 指标来自最近一次模型测试"
             models.append(
                 {
                     "model_id": model_id,
@@ -44,11 +49,11 @@ class ModelRegistry:
                     "version": str((meta or {}).get("version", "0.1.0")),
                     "framework": framework,
                     "is_active": model_id == self.active_id(models_exist=True),
-                    "accuracy": meta.get("accuracy") if meta else None,
-                    "macro_f1": meta.get("macro_f1") if meta else None,
+                    "accuracy": eval_ov.get("accuracy", meta.get("accuracy") if meta else None),
+                    "macro_f1": eval_ov.get("macro_f1", meta.get("macro_f1") if meta else None),
                     "trained_at": datetime.fromtimestamp(path.stat().st_mtime),
                     "selected_features": meta.get("selected_features", []) if meta else [],
-                    "description": _describe(path.stem, is_ngram, meta),
+                    "description": description,
                 }
             )
         if not models:

@@ -1,10 +1,11 @@
-import { Activity, Boxes, ShieldCheck, Upload } from "lucide-react";
+import { Activity, Boxes, FlaskConical, ShieldCheck, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
 import { api, type Health } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import EvaluatePage from "@/pages/EvaluatePage";
 import ModelsPage from "@/pages/ModelsPage";
 import ResultsPage from "@/pages/ResultsPage";
 import UploadPage from "@/pages/UploadPage";
@@ -13,6 +14,7 @@ const NAV = [
   { to: "/upload", label: "流量上传", icon: Upload },
   { to: "/results", label: "结果展示", icon: Activity },
   { to: "/models", label: "模型管理", icon: Boxes },
+  { to: "/evaluate", label: "模型测试", icon: FlaskConical },
 ];
 
 export default function App() {
@@ -66,6 +68,7 @@ export default function App() {
           <Route path="/upload" element={<UploadPage />} />
           <Route path="/results" element={<ResultsPage />} />
           <Route path="/models" element={<ModelsPage />} />
+          <Route path="/evaluate" element={<EvaluatePage />} />
           <Route path="*" element={<p className="text-slate-500">页面不存在</p>} />
         </Routes>
       </main>
