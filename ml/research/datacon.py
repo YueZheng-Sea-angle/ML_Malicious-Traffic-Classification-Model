@@ -1,9 +1,8 @@
-"""DataCon2021-ETA(加密代理流量)研究数据集装载与特征提取。
+"""DataCon2021-ETA（加密代理流量）研究数据集装载与特征提取。
 
-只负责「解析 + 标签映射 + 特征缓存」，产品特征管线仍复用 ml/features/extractor。
-标签依据 docs/数据集分析.md：part1 共 11 类工具(0-10)，part1_label.txt 记录
-real_data 标签，sample 目录文件名 label_n.pcap 自带标签。类别语义为软件身份，
-不含恶意/正常定性；二元口径由 agent_binary() 按场景假设给出。
+负责「解析 + 标签映射 + 特征缓存」。标签依据 docs/数据集分析.md：part1 共 11 类工具
+（0-10），part1_label.txt 记录 real_data 标签，sample 目录文件名 label_n.pcap 自带标签。
+产品分类口径即 T1（11 类工具形态识别，类别与 ml.config.CLASS_NAMES 一致）。
 """
 
 from __future__ import annotations
@@ -18,7 +17,7 @@ from ml.config import PROJECT_ROOT
 from ml.data.dataset import SampleBatch, load_dataset, save_dataset
 from ml.features.extractor import pcap_to_samples
 
-# DataCon part1 官方 11 类（数组下标即官方标签号 0-10）
+# DataCon part1 官方 11 类（数组下标即官方标签号 0-10），与 ml.config.CLASS_NAMES 一致
 TOOLS_11 = [
     "openvpn-udp", "psiphon-tls", "v2ray", "clash", "lantern",
     "openvpn-tls", "firefox", "psiphon-tcp", "wireguard-udp", "shadowsocks", "netch",
@@ -27,11 +26,6 @@ TOOLS_11_ZH = [
     "OpenVPN(UDP)", "Psiphon(TLS)", "V2Ray", "Clash", "Lantern",
     "OpenVPN(TLS)", "Firefox 直连", "Psiphon(TCP)", "WireGuard(UDP)", "Shadowsocks", "Netch",
 ]
-
-# 场景假设(T2)：疑似代理隧道 / 正常直连 / 灰色(合规常用，训练时排除)
-TUNNEL_POS = {"psiphon-tls", "v2ray", "clash", "lantern", "psiphon-tcp", "shadowsocks", "netch"}
-NORMAL_NEG = {"firefox"}
-GRAY_CLS = {"openvpn-udp", "openvpn-tls", "wireguard-udp"}
 
 DEFAULT_DATA_ROOT = PROJECT_ROOT / "DataCon2021加密代理流量数据集" / "datacon2021_eta"
 DEFAULT_RESEARCH_DIR = PROJECT_ROOT / "artifacts" / "research"
@@ -158,28 +152,3 @@ def _per_class_file_count(files: List[Tuple[Path, int]]) -> str:
 def flow_file_key(flow_id: str) -> str:
     """从 flow_id 还原文件分组键（flow_id 格式：<文件stem>::<流id>）。"""
     return flow_id.split("::", 1)[0]
-
-
-def agent_binary(batch: SampleBatch) -> SampleBatch:
-    """场景假设 T2：firefox→normal(0)，6 类隧道工具→tunnel(1)；灰色类(openvpn/wireguard)剔除。"""
-    keep_idx, new_labels = [], []
-    for i, lab in enumerate(batch.labels):
-        name = batch.class_names[int(lab)]
-        if name in NORMAL_NEG:
-            keep_idx.append(i)
-            new_labels.append(0)
-        elif name in TUNNEL_POS:
-            keep_idx.append(i)
-            new_labels.append(1)
-        # 灰色类(openvpn-*/wireguard-*)直接丢弃
-    if not keep_idx:
-        raise ValueError("二元口径下无保留样本，请检查类别集合")
-    idx = np.asarray(keep_idx, dtype=np.int64)
-    return SampleBatch(
-        stats=batch.stats[idx],
-        pkt=batch.pkt[idx],
-        byte=batch.byte[idx],
-        labels=np.asarray(new_labels, dtype=np.int64),
-        flow_ids=[batch.flow_ids[i] for i in idx],
-        class_names=["normal", "tunnel"],
-    )

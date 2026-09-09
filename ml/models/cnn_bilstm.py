@@ -70,13 +70,33 @@ class GatedStatEncoder(nn.Module):
         return self.mlp(x * gate), gate
 
 
-class MalFlowNet(nn.Module):
-    def __init__(self, num_classes: int = NUM_CLASSES, dropout: float = 0.3) -> None:
+class NGramEncoder(nn.Module):
+    """载荷字节 n-gram 编码器（B 组增强特征路）。
+
+    输入为逐流的 n-gram 特征向量（TF-IDF 计数，dim=K，由离线 vectorizer 生成），
+    经 MLP 投影为定长 64 维；仅在 checkpoint 启用 n-gram（ngram_dim>0）时存在。
+    """
+
+    def __init__(self, in_dim: int, out_dim: int = 64, dropout: float = 0.2) -> None:
         super().__init__()
+        self.mlp = nn.Sequential(
+            nn.Linear(in_dim, 128), nn.ReLU(), nn.Dropout(dropout), nn.Linear(128, out_dim), nn.ReLU()
+        )
+
+    def forward(self, ngram: torch.Tensor) -> torch.Tensor:
+        return self.mlp(ngram)
+
+
+class MalFlowNet(nn.Module):
+    def __init__(self, num_classes: int = NUM_CLASSES, dropout: float = 0.3,
+                 ngram_dim: int = 0) -> None:
+        super().__init__()
+        self.ngram_dim = int(ngram_dim)
         self.byte_encoder = ByteCNN()
         self.pkt_encoder = PacketBiLSTM()
         self.stat_encoder = GatedStatEncoder()
-        fusion_dim = 128 + 128 + 64
+        self.ngram_encoder = NGramEncoder(self.ngram_dim) if self.ngram_dim > 0 else None
+        fusion_dim = 128 + 128 + 64 + (64 if self.ngram_encoder is not None else 0)
         self.classifier = nn.Sequential(
             nn.Linear(fusion_dim, 128), nn.ReLU(), nn.Dropout(dropout), nn.Linear(128, num_classes)
         )
@@ -87,25 +107,32 @@ class MalFlowNet(nn.Module):
         self.prior_mask.copy_(mask.to(self.prior_mask.device).float())
 
     def forward(
-        self, stats: torch.Tensor, pkt_seq: torch.Tensor, byte_seq: torch.Tensor
+        self, stats: torch.Tensor, pkt_seq: torch.Tensor, byte_seq: torch.Tensor,
+        ngram: Optional[torch.Tensor] = None,
     ) -> Dict[str, torch.Tensor]:
         stat_vec, gate = self.stat_encoder(stats, self.prior_mask.expand(stats.size(0), -1))
-        fused = torch.cat(
-            [self.byte_encoder(byte_seq), self.pkt_encoder(pkt_seq), stat_vec], dim=-1
-        )
+        parts = [self.byte_encoder(byte_seq), self.pkt_encoder(pkt_seq), stat_vec]
+        if self.ngram_encoder is not None:
+            if ngram is None:
+                raise ValueError("模型启用了 n-gram 输入，forward 缺少 ngram 张量")
+            parts.append(self.ngram_encoder(ngram))
+        fused = torch.cat(parts, dim=-1)
         return {"logits": self.classifier(fused), "gate": gate, "embedding": fused}
 
 
-def build_model(num_classes: int = NUM_CLASSES) -> MalFlowNet:
-    return MalFlowNet(num_classes=num_classes)
+def build_model(num_classes: int = NUM_CLASSES, ngram_dim: int = 0) -> MalFlowNet:
+    return MalFlowNet(num_classes=num_classes, ngram_dim=ngram_dim)
 
 
 if __name__ == "__main__":  # 形状自检
     model = build_model()
     batch = 4
-    out = model(
-        torch.randn(batch, STAT_DIM),
-        torch.randn(batch, PKT_SEQ_LEN),
-        torch.randint(0, BYTE_VOCAB, (batch, 256)),
-    )
-    print({k: tuple(v.shape) for k, v in out.items()})
+    kwargs = {
+        "stats": torch.randn(batch, STAT_DIM),
+        "pkt_seq": torch.randn(batch, PKT_SEQ_LEN),
+        "byte_seq": torch.randint(0, BYTE_VOCAB, (batch, 256)),
+    }
+    print("baseline:", {k: tuple(v.shape) for k, v in model(**kwargs).items()})
+    model_b = build_model(ngram_dim=1000)
+    kwargs["ngram"] = torch.randn(batch, 1000)
+    print("ngram  :", {k: tuple(v.shape) for k, v in model_b(**kwargs).items()})

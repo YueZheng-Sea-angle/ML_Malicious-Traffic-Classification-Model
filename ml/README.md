@@ -10,7 +10,7 @@ PCAP ──extractor.extract_flows──> Flow(五元组 + 包序列)
         └── _byte_sequence           256 维首部字节序列
                     │
                     ├── FeatureSelector  离线评估贡献 -> 0/1 掩码
-                    └── MalFlowNet       三路编码 + 门控融合 -> 11 类代理/隧道工具概率
+                    └── LightGBM A/B      统计(±n-gram) -> 11 类代理/隧道工具概率
 ```
 
 ## 类别定义
@@ -42,18 +42,18 @@ python -m ml.train --data-dir data/raw --epochs 30 # 按类别目录组织的真
 python -m ml.predict --file sample.pcap            # 单文件推理
 python -m ml.models.cnn_bilstm                     # 网络结构形状自检
 
-# DataCon T1/T2（经 research 装载器转换后走同一训练循环）
-python -m ml.research.run_experiment --task tools  # T1：11 类工具形态识别
-python -m ml.research.run_experiment --task agent  # T2：隧道/正常二元
+# DataCon T1 A/B 双模型（同一训练器，产出基线与 n-gram 增强两组权重）
+python -m ml.research.run_experiment --real-per-class 5 --epochs 5
 ```
 
 ## 训练产物
 
 | 文件 | 内容 |
 |------|------|
-| `artifacts/models/malflow_datacon_tools.pt` | T1 权重、标准化参数、特征掩码、指标 |
+| `artifacts/models/malflow_datacon_tools.pt` | T1 A 组基线权重、标准化参数、特征掩码、指标 |
+| `artifacts/models/malflow_datacon_tools_ngram.pt` | T1 B 组 n-gram 增强权重（含 n-gram 词表） |
+| `artifacts/research/ab_tools_report.json` | A/B 双模型验证集对比报告 |
 | `artifacts/models/feature_report.json` | 各特征贡献度与入选列表 |
-| `artifacts/models/train_metrics.json` | 逐轮训练/验证指标 |
 
 ## 待办
 

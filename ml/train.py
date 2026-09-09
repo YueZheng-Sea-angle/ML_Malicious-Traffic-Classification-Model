@@ -4,9 +4,8 @@
     # 按类别目录组织 PCAP（类别名 = ml.config.CLASS_NAMES）
     python -m ml.train --data-dir data/raw --epochs 30 --batch-size 64
 
-    # DataCon T1（11 类代理工具）/ T2（tunnel/normal）请走 research 装载器：
-    python -m ml.research.run_experiment --task tools
-    python -m ml.research.run_experiment --task agent
+    # DataCon T1 A/B 双模型（基线 + n-gram 增强）请走 research 训练器：
+    python -m ml.research.run_experiment --real-per-class 5
 
 产物：
     artifacts/models/malflow_datacon_tools.pt  模型权重 + 标准化参数 + 特征掩码
@@ -43,7 +42,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--coverage", type=float, default=0.95, help="特征累计贡献覆盖率")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--task-scope", type=str, default="tools11",
-                        help="任务口径标识，写入 checkpoint：tools11/agent2")
+                        help="任务口径标识，写入 checkpoint：tools11")
     parser.add_argument("--class-weights", action="store_true",
                         help="按训练集类别频数倒数加权交叉熵（类别不平衡时启用）")
     parser.add_argument("--output", type=Path, default=DEFAULT_CHECKPOINT)
