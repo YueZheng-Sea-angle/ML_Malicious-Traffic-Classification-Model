@@ -63,6 +63,8 @@ class Predictor:
         self.stat_std: Optional[np.ndarray] = None
         self.selected_features: List[str] = []
         self.metrics: Dict[str, object] = {}
+        self.class_names: List[str] = list(CLASS_NAMES)          # 随 checkpoint 覆盖
+        self.class_names_zh: Dict[str, str] = dict(CLASS_NAMES_ZH)
         self._load()
 
     # ------------------------------------------------------------------ #
@@ -81,6 +83,10 @@ class Predictor:
             self.stat_std = np.asarray(payload["stat_std"], dtype=np.float32)
             self.selected_features = list(payload.get("selected_features", []))
             self.metrics = payload.get("metrics", {})
+            loaded_names = list(payload.get("class_names", CLASS_NAMES))
+            head_size = int(model.classifier[-1].out_features)
+            self.class_names = loaded_names if len(loaded_names) == head_size else CLASS_NAMES
+            self.class_names_zh = {n: CLASS_NAMES_ZH.get(n, n) for n in self.class_names}
             self.mode = "model"
         except Exception as exc:  # 权重损坏不应导致服务不可用
             print(f"[predict] 加载权重失败，回退启发式推理：{exc}")
@@ -91,7 +97,7 @@ class Predictor:
             "checkpoint": str(self.checkpoint_path),
             "checkpoint_exists": self.checkpoint_path.exists(),
             "torch_available": TORCH_AVAILABLE,
-            "class_names": CLASS_NAMES,
+            "class_names": self.class_names,
             "selected_features": self.selected_features,
             "metrics": self.metrics,
         }
@@ -114,12 +120,13 @@ class Predictor:
             self._probs_model(sample) if self.mode == "model" else self._probs_heuristic(sample)
         )
         best = int(np.argmax(probs))
+        names = self.class_names
         return FlowPrediction(
             flow_id=sample.flow_id,
-            label=CLASS_NAMES[best],
-            label_zh=CLASS_NAMES_ZH[CLASS_NAMES[best]],
+            label=names[best],
+            label_zh=self.class_names_zh.get(names[best], names[best]),
             confidence=float(probs[best]),
-            probabilities={name: float(p) for name, p in zip(CLASS_NAMES, probs)},
+            probabilities={name: float(p) for name, p in zip(names, probs)},
             meta=sample.meta,
         )
 
@@ -191,26 +198,30 @@ class Predictor:
         exp = np.exp(logits - logits.max())
         return exp / exp.sum()
 
-    @staticmethod
-    def _aggregate(flows: List[FlowPrediction]) -> Dict[str, object]:
-        """文件级结论：以恶意流的加权占比决定，正常类需压倒性多数。"""
+    def _aggregate(self, flows: List[FlowPrediction]) -> Dict[str, object]:
+        """文件级结论：以全部流平均概率聚合；正常类占比决定恶意分数。"""
+        names = list(self.class_names)
         if not flows:
             return {
                 "label": "unknown",
                 "label_zh": "无有效流",
                 "confidence": 0.0,
-                "probabilities": {name: 0.0 for name in CLASS_NAMES},
+                "probabilities": {name: 0.0 for name in names},
             }
-        matrix = np.stack([[f.probabilities[name] for name in CLASS_NAMES] for f in flows])
+        matrix = np.stack([[f.probabilities[name] for name in names] for f in flows])
         mean_probs = matrix.mean(axis=0)
-        malicious = float(1.0 - mean_probs[CLASS_NAMES.index("benign")])
         best = int(np.argmax(mean_probs))
+        # 恶意分数 = 1 − P(正常类)；无 normal/benign 类标注（如纯工具识别）时退化为 1 − P(top1)
+        benign_idx = names.index("benign") if "benign" in names else (
+            names.index("normal") if "normal" in names else None)
+        malicious = 1.0 - float(mean_probs[benign_idx]) if benign_idx is not None \
+            else 1.0 - float(mean_probs[best])
         return {
-            "label": CLASS_NAMES[best],
-            "label_zh": CLASS_NAMES_ZH[CLASS_NAMES[best]],
+            "label": names[best],
+            "label_zh": self.class_names_zh.get(names[best], names[best]),
             "confidence": round(float(mean_probs[best]), 4),
             "malicious_score": round(malicious, 4),
-            "probabilities": {n: round(float(p), 4) for n, p in zip(CLASS_NAMES, mean_probs)},
+            "probabilities": {n: round(float(p), 4) for n, p in zip(names, mean_probs)},
         }
 
 

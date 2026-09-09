@@ -36,6 +36,7 @@ data/raw/
 data/processed/
 *.pcap
 *.pcapng
+DataCon2021加密代理流量数据集/
 
 # ---------- 环境与密钥 ----------
 .env
@@ -47,3 +48,5 @@ data/processed/
 .idea/
 .DS_Store
 Thumbs.db
+
+docs/

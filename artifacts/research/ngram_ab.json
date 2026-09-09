@@ -1,0 +1,109 @@
+{
+  "task": "agent2",
+  "description": "A=40维统计(基线) / B=40维统计+载荷字节n-gram；文件级划分；LR/RF",
+  "class_names": [
+    "normal",
+    "tunnel"
+  ],
+  "params": {
+    "real_per_class": 3,
+    "max_flows": 64,
+    "val_ratio": 0.25,
+    "seed": 42,
+    "ngram_max_n": 4,
+    "ngram_min_df": 2,
+    "ngram_topk": 500,
+    "ngram_max_packets": 16,
+    "ngram_max_bytes": 1024
+  },
+  "n_flows": {
+    "train": 1292,
+    "val": 341
+  },
+  "class_dist_val": {
+    "tunnel": 277,
+    "normal": 64
+  },
+  "stat_dim": 40,
+  "stat_feature_names": [
+    "pkt_count",
+    "byte_count",
+    "duration",
+    "pkt_rate",
+    "byte_rate",
+    "len_mean",
+    "len_std",
+    "len_min",
+    "len_max",
+    "len_median",
+    "len_p25",
+    "len_p75",
+    "len_skew",
+    "small_pkt_ratio",
+    "large_pkt_ratio",
+    "fwd_ratio",
+    "bwd_ratio",
+    "fwd_bwd_byte_ratio",
+    "direction_switch_rate",
+    "fwd_len_mean",
+    "bwd_len_mean",
+    "burst_count",
+    "mean_burst_size",
+    "iat_mean",
+    "iat_std",
+    "iat_min",
+    "iat_max",
+    "idle_ratio",
+    "payload_entropy",
+    "printable_ratio",
+    "zero_byte_ratio",
+    "high_byte_ratio",
+    "tls_record_ratio",
+    "handshake_pkt_ratio",
+    "appdata_pkt_ratio",
+    "first_appdata_index",
+    "tls13_hint",
+    "peer_flow_count",
+    "peer_concurrency",
+    "same_port_flow_ratio"
+  ],
+  "ngram_vocab_size": 500,
+  "results": {
+    "A 统计40": {
+      "LR": {
+        "accuracy": 0.99413,
+        "macro_f1": 0.9905,
+        "per_class_recall": {
+          "normal": 1.0,
+          "tunnel": 0.99278
+        }
+      },
+      "RF": {
+        "accuracy": 0.94721,
+        "macro_f1": 0.90245,
+        "per_class_recall": {
+          "normal": 0.71875,
+          "tunnel": 1.0
+        }
+      }
+    },
+    "B 统计40+ngram": {
+      "LR": {
+        "accuracy": 0.99413,
+        "macro_f1": 0.9905,
+        "per_class_recall": {
+          "normal": 1.0,
+          "tunnel": 0.99278
+        }
+      },
+      "RF": {
+        "accuracy": 0.94428,
+        "macro_f1": 0.89626,
+        "per_class_recall": {
+          "normal": 0.70312,
+          "tunnel": 1.0
+        }
+      }
+    }
+  }
+}

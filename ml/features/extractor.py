@@ -106,9 +106,12 @@ def extract_flows(pcap_path: Path, max_packets: int = 20000) -> List[Flow]:
     pcap_path = Path(pcap_path)
     if SCAPY_AVAILABLE and pcap_path.exists():
         try:
-            return _extract_flows_scapy(pcap_path, max_packets)
+            flows = _extract_flows_scapy(pcap_path, max_packets)
+            if flows:
+                return flows
         except Exception:
             pass
+    # scapy 缺失、解析异常或切分不出可用流（文件非法）时降级为确定性伪流
     return synthesize_flows(pcap_path)
 
 

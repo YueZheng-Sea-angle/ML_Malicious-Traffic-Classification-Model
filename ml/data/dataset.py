@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Tuple
 
@@ -21,13 +21,14 @@ from ml.features.extractor import STAT_DIM, Flow, Packet, flow_to_sample, pcap_t
 
 @dataclass
 class SampleBatch:
-    """一批样本的三路输入与标签。"""
+    """一批样本的三路输入、标签与类别名（类别名随批携带，支持任意任务口径）。"""
 
     stats: np.ndarray   # (N, STAT_DIM) float32
     pkt: np.ndarray     # (N, PKT_SEQ_LEN) float32
     byte: np.ndarray    # (N, BYTE_SEQ_LEN) int64
     labels: np.ndarray  # (N,) int64
     flow_ids: List[str]
+    class_names: List[str] = field(default_factory=lambda: list(CLASS_NAMES))
 
     def __len__(self) -> int:
         return int(self.labels.shape[0])
@@ -39,6 +40,7 @@ class SampleBatch:
             byte=self.byte[index],
             labels=self.labels[index],
             flow_ids=[self.flow_ids[i] for i in index],
+            class_names=list(self.class_names),
         )
 
 
@@ -100,17 +102,20 @@ def save_dataset(batch: SampleBatch, path: Path) -> None:
         byte=batch.byte,
         labels=batch.labels,
         flow_ids=np.array(batch.flow_ids, dtype=object),
+        class_names=np.array(batch.class_names, dtype=object),
     )
 
 
 def load_dataset(path: Path) -> SampleBatch:
     data = np.load(Path(path), allow_pickle=True)
+    class_names = [str(x) for x in data["class_names"]] if "class_names" in data else list(CLASS_NAMES)
     return SampleBatch(
         stats=data["stats"],
         pkt=data["pkt"],
         byte=data["byte"],
         labels=data["labels"],
         flow_ids=[str(x) for x in data["flow_ids"]],
+        class_names=class_names,
     )
 
 
@@ -169,11 +174,12 @@ def _synthesize_payload(rng: np.random.Generator, profile: dict, index: int) -> 
     return bytes(head + [int(b) for b in body[3:]])
 
 
-def _stack(stats, pkts, bytes_, labels, flow_ids) -> SampleBatch:
+def _stack(stats, pkts, bytes_, labels, flow_ids, class_names=None) -> SampleBatch:
     return SampleBatch(
         stats=np.asarray(stats, dtype=np.float32).reshape(-1, STAT_DIM),
         pkt=np.asarray(pkts, dtype=np.float32).reshape(-1, PKT_SEQ_LEN),
         byte=np.asarray(bytes_, dtype=np.int64).reshape(-1, BYTE_SEQ_LEN),
         labels=np.asarray(labels, dtype=np.int64),
         flow_ids=list(flow_ids),
+        class_names=list(class_names) if class_names else list(CLASS_NAMES),
     )

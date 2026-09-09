@@ -1,0 +1,71 @@
+{
+  "task": "agent2",
+  "class_names": [
+    "normal",
+    "tunnel"
+  ],
+  "best_accuracy": 0.8123167155425219,
+  "selected_features": [
+    "byte_count",
+    "duration",
+    "pkt_rate",
+    "byte_rate",
+    "len_mean",
+    "len_std",
+    "len_min",
+    "len_max",
+    "len_median",
+    "len_p25",
+    "len_p75",
+    "len_skew",
+    "fwd_ratio",
+    "bwd_ratio",
+    "fwd_bwd_byte_ratio",
+    "direction_switch_rate",
+    "fwd_len_mean",
+    "bwd_len_mean",
+    "burst_count",
+    "mean_burst_size",
+    "iat_mean",
+    "iat_std",
+    "iat_min",
+    "iat_max",
+    "payload_entropy",
+    "printable_ratio",
+    "zero_byte_ratio",
+    "high_byte_ratio",
+    "tls_record_ratio",
+    "handshake_pkt_ratio",
+    "appdata_pkt_ratio",
+    "first_appdata_index",
+    "peer_flow_count",
+    "peer_concurrency",
+    "same_port_flow_ratio"
+  ],
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.4239,
+      "accuracy": 0.8123167155425219,
+      "macro_f1": 0.4482200647249191,
+      "per_class_recall": {
+        "normal": 0.0,
+        "tunnel": 1.0
+      }
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.3377,
+      "accuracy": 0.8123167155425219,
+      "macro_f1": 0.4482200647249191,
+      "per_class_recall": {
+        "normal": 0.0,
+        "tunnel": 1.0
+      }
+    }
+  ],
+  "per_class_recall": {
+    "normal": 0.0,
+    "tunnel": 1.0
+  }
+}
