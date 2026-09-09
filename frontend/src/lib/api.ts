@@ -8,7 +8,7 @@ export interface Health {
   status: string;
   app_name: string;
   version: string;
-  inference_mode: "model" | "heuristic" | "unavailable";
+  inference_mode: "model" | "unavailable";
   torch_available: boolean;
 }
 
@@ -38,7 +38,6 @@ export interface TaskResult {
   label: string;
   label_zh: string;
   confidence: number;
-  malicious_score: number;
   probabilities: Record<string, number>;
   flow_count: number;
   flows: FlowResult[];
@@ -81,6 +80,31 @@ export interface Stats {
   average_elapsed_ms: number;
 }
 
+export interface EvalJob {
+  job_id: string;
+  model_id: string;
+  variant: "A" | "B";
+  train_ratio: number;
+  per_class_files: number;
+  status: "running" | "succeeded" | "failed";
+  error: string | null;
+  elapsed_ms: number | null;
+  result: {
+    variant: "A" | "B";
+    n_train_files: number;
+    n_test_files: number;
+    n_train_flows: number;
+    n_test_flows: number;
+    ngram_vocab_size: number;
+    test_metrics: {
+      accuracy: number;
+      macro_f1: number;
+      per_class_recall: Record<string, number>;
+    };
+    file_metrics: { n_files: number; hit_rate: number };
+  } | null;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${BASE}${path}`, init);
   if (!response.ok) {
@@ -120,6 +144,15 @@ export const api = {
 
   activateModel: (modelId: string) =>
     request<{ activated: string }>(`/models/${modelId}/activate`, { method: "POST" }),
+
+  startEvaluate: (payload: { model_id?: string; train_ratio: number; per_class_files: number }) =>
+    request<EvalJob>("/models/evaluate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
+
+  getEvaluate: (jobId: string) => request<EvalJob>(`/models/evaluate/${jobId}`),
 };
 
 /** 轮询任务直到完成，用于上传后自动展示结果。 */

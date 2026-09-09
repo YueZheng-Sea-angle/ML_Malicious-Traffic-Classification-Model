@@ -1,9 +1,10 @@
-# 恶意流量分类系统（MalFlow）
+# 加密代理工具识别系统（MalFlow）
 
-> 基于深度学习方法的 TLS 1.3 加密恶意流量分类模型
+> 基于深度学习方法、面向 DataCon2021-ETA 的加密代理/隧道流量**工具形态识别（T1，11 类）**
 
-当前为 **v0.1.0 原型**：三层链路（前端 → 后端 → 算法）已打通，模型权重缺失时
-自动退化为演示推理，便于在数据集到位前完成界面与流程验收。
+当前为 **v0.1.0 原型**：三层链路（前端 → 后端 → 算法）已打通。默认加载
+`artifacts/models/malflow_datacon_tools.pt`（T1 权重），无可用权重时推理返回
+`unavailable` 占位结果，不阻塞界面验收与联调。
 
 ---
 
@@ -47,6 +48,8 @@ cd project
 
 ### 2.2 后端 + 算法层
 
+**Linux / macOS（bash）**
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -55,6 +58,31 @@ pip install -r environment/requirements.txt
 cd backend
 uvicorn app.main:app --reload --port 8000
 ```
+
+**Windows（PowerShell）**
+
+> 虚拟环境 `.venv` 位于**项目根目录**。请在项目根目录执行激活，不要先 `cd backend`；
+> 若已在子目录，请退回项目根或改用 `..\.venv\Scripts\Activate.ps1`。
+
+```powershell
+cd <项目根目录>            # 回到项目根（克隆后即在此目录，勿先进 backend）
+
+python -m venv .venv                            # 首次创建；已存在可跳过此步
+
+# 首次激活如被“禁止运行脚本”拦截，先为本用户放行（一次性，需管理员身份或已授权）：
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\.venv\Scripts\Activate.ps1                    # 激活成功时提示符前出现 (.venv)
+
+$env:PYTHONUTF8 = 1                             # 必须：否则 pip 解析含中文注释的依赖清单会报 GBK 解码错
+python -m pip install -r environment\requirements.txt
+
+cd backend
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+> 常见报错“无法将 .\.venv\Scripts\Activate.ps1 识别为 cmdlet…”通常有两个原因：
+> 1. 当前目录不在项目根（如在 `backend\` 下）——退回根目录或用 `..\.venv\Scripts\Activate.ps1`；
+> 2. 执行策略禁止脚本——先运行上面的 `Set-ExecutionPolicy` 一行；或在 cmd 中改用 `activate.bat` 激活（路径 `.venv\Scripts\activate.bat`，同样须在项目根目录执行）。
 
 - 接口文档：<http://127.0.0.1:8000/docs>
 - 健康检查：<http://127.0.0.1:8000/api/health>
@@ -70,21 +98,25 @@ npm run dev
 访问 <http://localhost:5173>。开发服务器已把 `/api` 代理到 `127.0.0.1:8000`，
 无需额外配置跨域。
 
-### 2.4 训练一个可用权重（合成数据）
+### 2.4 训练/获取一个 T1 权重
+
+仓库已在 `artifacts/models/malflow_datacon_tools.pt` 附带 T1（11 类代理工具）权重，
+默认推理即使用它；界面右上角标识为「已加载模型权重」。
+
+需要重训时（DataCon T1，需 `part1_label.txt` 存在）：
 
 ```bash
 # 在项目根目录（project/）执行，需已激活虚拟环境
-python -m ml.train --synthetic --epochs 8
+python -m ml.research.run_experiment --task tools --real-per-class 10 --epochs 8
 ```
 
-产物写入 `artifacts/models/`，后端重启或在「模型管理」页点击激活后即切换为
-真实模型推理，界面右上角标识由「演示推理模式」变为「已加载模型权重」。
+`artifacts/models/` 下的权重可在「模型管理」页激活；若该目录没有任何 `.pt`，
+推理返回 `unavailable` 占位结果（界面显示「模型未加载」）。
 
-数据集到位后改用：
+如自行按类别目录组织 PCAP（目录名取自 `ml/config.py` 的 11 类工具名），也可：
 
 ```bash
 python -m ml.train --data-dir data/raw --epochs 30
-# data/raw/<类别名>/*.pcap，类别名见 ml/config.py 的 CLASS_NAMES
 ```
 
 ---
@@ -138,9 +170,9 @@ cd frontend && npm run typecheck   # 前端类型检查
 - 依赖版本见 `environment/requirements.txt`
 - 环境验收：后端 `/api/health` 返回 200，前端可正常访问并完成上传与分类流程
 
-**依赖降级策略**：`scapy` 缺失时特征提取退化为确定性伪流，`torch` 缺失或权重
-未训练时推理退化为启发式基线。两种情况接口返回结构不变，仅 `mode` 字段不同，
-以保证环境未就绪时演示与联调不被阻塞。
+**推理降级策略**：`scapy` 缺失或文件非法时特征提取退化为确定性伪流；`torch` 缺失
+或 `artifacts/models/` 无权重时推理返回 `unavailable` 占位结果。两种情况接口返回
+结构不变，仅 `mode` 字段不同，以保证环境未就绪时演示与联调不被阻塞。
 
 ---
 

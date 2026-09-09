@@ -1,6 +1,6 @@
 """流量特征提取：PCAP -> 流 -> 三路特征（统计 / 包长方向序列 / 首部字节）。
 
-对应需求「恶意流量特征的分析与表示」与「特征的增强与优化」：
+对应需求「加密代理流量特征的分析与表示」与「特征的增强与优化」：
     1. 字节特征      —— 首部字节序列 + 字节熵
     2. 包长与方向    —— 带符号包长序列及其统计量
     3. 交互行为      —— 到达间隔、突发、上下行比例、握手节奏
@@ -106,9 +106,12 @@ def extract_flows(pcap_path: Path, max_packets: int = 20000) -> List[Flow]:
     pcap_path = Path(pcap_path)
     if SCAPY_AVAILABLE and pcap_path.exists():
         try:
-            return _extract_flows_scapy(pcap_path, max_packets)
+            flows = _extract_flows_scapy(pcap_path, max_packets)
+            if flows:
+                return flows
         except Exception:
             pass
+    # scapy 缺失、解析异常或切分不出可用流（文件非法）时降级为确定性伪流
     return synthesize_flows(pcap_path)
 
 

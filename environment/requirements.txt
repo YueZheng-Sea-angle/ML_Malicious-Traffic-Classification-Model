@@ -1,4 +1,4 @@
-# 恶意流量分类系统 · 后端 + ML 依赖
+# 加密代理工具识别系统 · 后端 + ML 依赖
 # 目标环境：Ubuntu 22.04 / Python 3.10+
 # 安装：python3 -m venv .venv && source .venv/bin/activate
 #       pip install -r environment/requirements.txt
@@ -13,6 +13,7 @@ pydantic-settings==2.5.2
 numpy==1.26.4
 pandas==2.2.2
 scikit-learn==1.5.2
+lightgbm==4.7.0
 
 # ---- 深度学习（CPU 版；有 GPU 时按官网命令另装 CUDA 版）----
 torch==2.4.1

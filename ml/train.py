@@ -1,16 +1,16 @@
 """离线训练入口。
 
 用法：
-    # 合成数据（数据集到位前打通链路）
-    python -m ml.train --synthetic --epochs 8
-
-    # 真实数据集
+    # 按类别目录组织 PCAP（类别名 = ml.config.CLASS_NAMES）
     python -m ml.train --data-dir data/raw --epochs 30 --batch-size 64
 
+    # DataCon T1 A/B 双模型（基线 + n-gram 增强）请走 research 训练器：
+    python -m ml.research.run_experiment --real-per-class 5
+
 产物：
-    artifacts/models/malflow_cnn_bilstm.pt   模型权重 + 标准化参数 + 特征掩码
-    artifacts/models/feature_report.json     特征贡献评估报告
-    artifacts/models/train_metrics.json      训练与验证指标
+    artifacts/models/malflow_datacon_tools.pt  模型权重 + 标准化参数 + 特征掩码
+    artifacts/models/feature_report.json       特征贡献评估报告
+    artifacts/models/train_metrics.json        训练与验证指标
 """
 
 from __future__ import annotations
@@ -26,43 +26,40 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
-from ml.config import CLASS_NAMES, DEFAULT_CHECKPOINT, MODEL_DIR, NUM_CLASSES
-from ml.data.dataset import (
-    build_dataset_from_pcaps,
-    make_synthetic_dataset,
-    split_dataset,
-)
+from ml.config import CLASS_NAMES, DEFAULT_CHECKPOINT, MODEL_DIR
+from ml.data.dataset import build_dataset_from_pcaps, split_dataset
 from ml.features.selection import FeatureSelector
 from ml.models.cnn_bilstm import build_model
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="恶意流量分类模型训练")
+    parser = argparse.ArgumentParser(description="加密代理/隧道工具分类模型训练（T1）")
     parser.add_argument("--data-dir", type=Path, default=None, help="按类别分目录存放的 PCAP 根目录")
-    parser.add_argument("--synthetic", action="store_true", help="使用合成数据集")
-    parser.add_argument("--samples-per-class", type=int, default=150)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--val-ratio", type=float, default=0.2)
     parser.add_argument("--coverage", type=float, default=0.95, help="特征累计贡献覆盖率")
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--task-scope", type=str, default="tools11",
+                        help="任务口径标识，写入 checkpoint：tools11")
+    parser.add_argument("--class-weights", action="store_true",
+                        help="按训练集类别频数倒数加权交叉熵（类别不平衡时启用）")
     parser.add_argument("--output", type=Path, default=DEFAULT_CHECKPOINT)
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
+    if not args.data_dir:
+        raise SystemExit("请通过 --data-dir 指定按类别组织的 PCAP 根目录")
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
-    batch = (
-        build_dataset_from_pcaps(args.data_dir)
-        if args.data_dir and not args.synthetic
-        else make_synthetic_dataset(args.samples_per_class, seed=args.seed)
-    )
+    batch = build_dataset_from_pcaps(args.data_dir)
+    class_names = list(batch.class_names)
     train_set, val_set = split_dataset(batch, val_ratio=args.val_ratio, seed=args.seed)
-    print(f"[数据] 训练 {len(train_set)} 条 / 验证 {len(val_set)} 条 / 类别 {NUM_CLASSES}")
+    print(f"[数据] 训练 {len(train_set)} 条 / 验证 {len(val_set)} 条 / 类别 {len(class_names)}")
 
     # 统计特征标准化参数只能来自训练集，避免验证集信息泄漏
     mean = train_set.stats.mean(axis=0)
@@ -77,7 +74,7 @@ def main() -> None:
           f"{[s.name for s in selector.top(5)]}")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = build_model(NUM_CLASSES).to(device)
+    model = build_model(len(class_names)).to(device)
     model.set_prior_mask(torch.from_numpy(selector.mask()))
 
     train_loader = DataLoader(
@@ -85,7 +82,20 @@ def main() -> None:
     )
     val_loader = DataLoader(_to_tensor_dataset(val_set, mean, std), batch_size=args.batch_size)
 
-    criterion = nn.CrossEntropyLoss(label_smoothing=0.05)
+    if args.class_weights:
+        counts = np.bincount(train_set.labels, minlength=len(class_names)).astype(np.float64)
+        counts[counts == 0] = 1.0  # 训练集缺失的类别不参与加权
+        weight = counts.sum() / (len(class_names) * counts)
+        weight = weight / weight.sum() * len(class_names)  # 保持与原损失量级一致
+        print("[权重] 类别加权："
+              + ", ".join(f"{n}={w:.2f}" for n, w in zip(class_names, weight)))
+    else:
+        weight = None
+
+    criterion = nn.CrossEntropyLoss(
+        label_smoothing=0.05,
+        weight=torch.from_numpy(weight.astype(np.float32)).to(device) if weight is not None else None,
+    )
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(args.epochs, 1))
 
@@ -103,7 +113,8 @@ def main() -> None:
         )
         if metrics["accuracy"] >= best_acc:
             best_acc = metrics["accuracy"]
-            _save_checkpoint(args.output, model, mean, std, selector, metrics)
+            _save_checkpoint(args.output, model, mean, std, selector, metrics,
+                             class_names=class_names, task_scope=args.task_scope)
 
     (MODEL_DIR / "train_metrics.json").write_text(
         json.dumps({"best_accuracy": best_acc, "history": history}, ensure_ascii=False, indent=2),
@@ -138,7 +149,8 @@ def _train_one_epoch(model, loader, criterion, optimizer, device) -> float:
 
 
 @torch.no_grad()
-def evaluate(model, loader, device) -> Dict[str, object]:
+def evaluate(model, loader, device, class_names: Optional[List[str]] = None) -> Dict[str, object]:
+    """评估模型：accuracy / macro-F1 / 逐类召回。class_names 为空时按数据推断类别数。"""
     model.eval()
     preds, targets = [], []
     for stats, pkt, byte, labels in loader:
@@ -147,16 +159,28 @@ def evaluate(model, loader, device) -> Dict[str, object]:
         targets.append(labels.numpy())
     y_pred = np.concatenate(preds) if preds else np.array([])
     y_true = np.concatenate(targets) if targets else np.array([])
+    names = list(class_names) if class_names else _infer_class_names(y_true, y_pred)
     return {
         "accuracy": float((y_pred == y_true).mean()) if len(y_true) else 0.0,
         "macro_f1": _macro_f1(y_true, y_pred),
-        "per_class_recall": _per_class_recall(y_true, y_pred),
+        "per_class_recall": _per_class_recall(y_true, y_pred, names),
     }
 
 
+def _infer_class_names(y_true: np.ndarray, y_pred: np.ndarray) -> List[str]:
+    """按数据集中出现的类别 id 推断类别名（仅为缺失 class_names 时的兜底）。"""
+    if not len(y_true):
+        return list(CLASS_NAMES)
+    n = int(max(y_true.max(), y_pred.max())) + 1 if len(y_pred) else int(y_true.max()) + 1
+    return [str(CLASS_NAMES[i]) if i < len(CLASS_NAMES) else f"class_{i}" for i in range(n)]
+
+
 def _macro_f1(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    if not len(y_true):
+        return 0.0
+    n_classes = int(max(y_true.max(), y_pred.max())) + 1 if len(y_pred) else int(y_true.max()) + 1
     scores = []
-    for c in range(NUM_CLASSES):
+    for c in range(n_classes):
         tp = float(np.sum((y_pred == c) & (y_true == c)))
         fp = float(np.sum((y_pred == c) & (y_true != c)))
         fn = float(np.sum((y_pred != c) & (y_true == c)))
@@ -166,27 +190,32 @@ def _macro_f1(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(np.mean(scores))
 
 
-def _per_class_recall(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+def _per_class_recall(y_true: np.ndarray, y_pred: np.ndarray,
+                      class_names: Optional[List[str]] = None) -> Dict[str, float]:
+    names = list(class_names) if class_names else list(CLASS_NAMES)
     result = {}
-    for c, name in enumerate(CLASS_NAMES):
+    for c, name in enumerate(names):
         mask = y_true == c
         result[name] = float((y_pred[mask] == c).mean()) if mask.any() else 0.0
     return result
 
 
-def _save_checkpoint(path: Path, model, mean, std, selector: FeatureSelector, metrics) -> None:
+def _save_checkpoint(path: Path, model, mean, std, selector: FeatureSelector, metrics,
+                     class_names: Optional[List[str]] = None,
+                     task_scope: str = "tools11") -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
         {
             "state_dict": model.state_dict(),
-            "class_names": CLASS_NAMES,
+            "class_names": list(class_names) if class_names else CLASS_NAMES,
+            "task_scope": task_scope,
             "stat_mean": mean,
             "stat_std": std,
             "feature_mask": selector.mask(),
             "selected_features": [selector.feature_names[i] for i in selector.selected_],
             "metrics": metrics,
-            "version": "0.1.0",
+            "version": "0.2.0",
         },
         path,
     )

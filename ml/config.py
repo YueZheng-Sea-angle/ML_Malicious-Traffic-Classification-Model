@@ -1,6 +1,7 @@
 """算法层公共配置：类别定义、序列长度、路径常量。
 
-后端与训练脚本共享本文件，避免类别顺序不一致导致标签错位。
+产品分类口径采用 DataCon2021-ETA part1 的 T1（11 类加密代理/隧道工具形态识别），
+类别顺序与官方标签 id 0-10 完全一致，训练与推理必须共享本表以免标签错位。
 """
 
 from __future__ import annotations
@@ -12,23 +13,33 @@ ARTIFACT_DIR = PROJECT_ROOT / "artifacts"
 MODEL_DIR = ARTIFACT_DIR / "models"
 UPLOAD_DIR = ARTIFACT_DIR / "uploads"
 
-# 分类类别，顺序即标签 id，训练与推理必须一致
+# 分类类别，顺序即标签 id，训练与推理必须一致（DataCon part1 官方 11 类）
 CLASS_NAMES = [
-    "benign",       # 正常加密流量
-    "botnet",       # 僵尸网络 C&C
-    "ransomware",   # 勒索软件回传
-    "trojan",       # 木马下载/控制
-    "cryptomining",  # 挖矿
-    "ddos",         # 拒绝服务攻击
+    "openvpn-udp",    # OpenVPN UDP 隧道
+    "psiphon-tls",    # Psiphon TLS
+    "v2ray",          # V2Ray
+    "clash",          # Clash
+    "lantern",        # Lantern
+    "openvpn-tls",    # OpenVPN TLS 隧道
+    "firefox",        # Firefox 直连（正常对照）
+    "psiphon-tcp",    # Psiphon TCP
+    "wireguard-udp",  # WireGuard UDP 隧道
+    "shadowsocks",    # Shadowsocks
+    "netch",          # Netch
 ]
 
 CLASS_NAMES_ZH = {
-    "benign": "正常流量",
-    "botnet": "僵尸网络",
-    "ransomware": "勒索软件",
-    "trojan": "木马",
-    "cryptomining": "挖矿",
-    "ddos": "DDoS 攻击",
+    "openvpn-udp": "OpenVPN（UDP）",
+    "psiphon-tls": "Psiphon（TLS）",
+    "v2ray": "V2Ray",
+    "clash": "Clash",
+    "lantern": "Lantern",
+    "openvpn-tls": "OpenVPN（TLS）",
+    "firefox": "Firefox 直连",
+    "psiphon-tcp": "Psiphon（TCP）",
+    "wireguard-udp": "WireGuard（UDP）",
+    "shadowsocks": "Shadowsocks",
+    "netch": "Netch",
 }
 
 NUM_CLASSES = len(CLASS_NAMES)
@@ -38,4 +49,4 @@ PKT_SEQ_LEN = 32     # 包长方向序列长度
 BYTE_SEQ_LEN = 256   # 首部字节序列长度
 BYTE_VOCAB = 257     # 0-255 字节 + 1 个 padding 位
 
-DEFAULT_CHECKPOINT = MODEL_DIR / "malflow_cnn_bilstm.pt"
+DEFAULT_CHECKPOINT = MODEL_DIR / "malflow_datacon_tools.pt"

@@ -34,12 +34,14 @@ export function Badge({
   );
 }
 
-/** 分类标签 -> 语义色，benign 为绿色，其余按威胁程度取暖色。 */
+/** 分类标签 -> 语义色（DataCon T1：firefox 为正常对照，其余为代理/隧道工具）。 */
 export function labelTone(label: string): Tone {
-  if (label === "benign") return "success";
+  if (label === "firefox") return "success";
   if (label === "unknown") return "neutral";
-  if (label === "ddos" || label === "ransomware") return "danger";
-  return "warning";
+  if (label === "openvpn-udp" || label === "openvpn-tls" || label === "wireguard-udp") {
+    return "warning";
+  }
+  return "info";
 }
 
 export function statusTone(status: string): Tone {

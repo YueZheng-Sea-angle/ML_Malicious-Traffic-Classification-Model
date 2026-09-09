@@ -49,7 +49,7 @@ export default function ModelsPage() {
       <Card>
         <CardHeader
           title="模型仓库"
-          description="权重文件来自 artifacts/models，训练命令：python -m ml.train --synthetic"
+          description="权重来自 artifacts/models；DataCon T1 训练：python -m ml.research.run_experiment --task tools"
         />
         <CardBody className="space-y-3">
           {models.map((model) => (

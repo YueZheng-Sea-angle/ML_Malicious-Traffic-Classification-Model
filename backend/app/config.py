@@ -23,7 +23,7 @@ class Settings:
     """轻量配置对象，避免为了几个字段引入额外依赖层。"""
 
     def __init__(self) -> None:
-        self.app_name: str = os.getenv("MALFLOW_APP_NAME", "恶意流量分类系统")
+        self.app_name: str = os.getenv("MALFLOW_APP_NAME", "加密代理工具识别系统")
         self.version: str = "0.1.0"
         self.upload_dir: Path = _resolve(os.getenv("MALFLOW_UPLOAD_DIR", "artifacts/uploads"))
         self.model_dir: Path = _resolve(os.getenv("MALFLOW_MODEL_DIR", "artifacts/models"))

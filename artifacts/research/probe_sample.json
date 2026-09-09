@@ -1,0 +1,127 @@
+{
+  "n_class": 11,
+  "total_flows": 1642,
+  "by_class": {
+    "openvpn-udp": {
+      "files": 3,
+      "flows": 3,
+      "flows_per_file": {
+        "min": 1,
+        "median": 1,
+        "max": 1
+      },
+      "pkt_per_flow_median": 58,
+      "flow_duration_median_s": 5.881
+    },
+    "netch": {
+      "files": 2,
+      "flows": 58,
+      "flows_per_file": {
+        "min": 7,
+        "median": 29,
+        "max": 51
+      },
+      "pkt_per_flow_median": 2,
+      "flow_duration_median_s": 0.054
+    },
+    "psiphon-tls": {
+      "files": 3,
+      "flows": 3,
+      "flows_per_file": {
+        "min": 1,
+        "median": 1,
+        "max": 1
+      },
+      "pkt_per_flow_median": 231,
+      "flow_duration_median_s": 9.635
+    },
+    "v2ray": {
+      "files": 4,
+      "flows": 232,
+      "flows_per_file": {
+        "min": 40,
+        "median": 64,
+        "max": 64
+      },
+      "pkt_per_flow_median": 2,
+      "flow_duration_median_s": 0.057
+    },
+    "clash": {
+      "files": 4,
+      "flows": 225,
+      "flows_per_file": {
+        "min": 33,
+        "median": 64,
+        "max": 64
+      },
+      "pkt_per_flow_median": 6,
+      "flow_duration_median_s": 0.132
+    },
+    "lantern": {
+      "files": 9,
+      "flows": 576,
+      "flows_per_file": {
+        "min": 64,
+        "median": 64,
+        "max": 64
+      },
+      "pkt_per_flow_median": 3,
+      "flow_duration_median_s": 0.095
+    },
+    "openvpn-tls": {
+      "files": 3,
+      "flows": 3,
+      "flows_per_file": {
+        "min": 1,
+        "median": 1,
+        "max": 1
+      },
+      "pkt_per_flow_median": 166,
+      "flow_duration_median_s": 5.651
+    },
+    "firefox": {
+      "files": 3,
+      "flows": 192,
+      "flows_per_file": {
+        "min": 64,
+        "median": 64,
+        "max": 64
+      },
+      "pkt_per_flow_median": 4,
+      "flow_duration_median_s": 0.178
+    },
+    "psiphon-tcp": {
+      "files": 7,
+      "flows": 7,
+      "flows_per_file": {
+        "min": 1,
+        "median": 1,
+        "max": 1
+      },
+      "pkt_per_flow_median": 1032,
+      "flow_duration_median_s": 5.638
+    },
+    "wireguard-udp": {
+      "files": 3,
+      "flows": 3,
+      "flows_per_file": {
+        "min": 1,
+        "median": 1,
+        "max": 1
+      },
+      "pkt_per_flow_median": 375,
+      "flow_duration_median_s": 9.557
+    },
+    "shadowsocks": {
+      "files": 10,
+      "flows": 340,
+      "flows_per_file": {
+        "min": 12,
+        "median": 32,
+        "max": 64
+      },
+      "pkt_per_flow_median": 9,
+      "flow_duration_median_s": 0.192
+    }
+  }
+}

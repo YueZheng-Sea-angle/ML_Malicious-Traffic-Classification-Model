@@ -67,7 +67,6 @@ def _result_to_dict(result: dict | None) -> dict | None:
         "label": result.get("label", "unknown"),
         "label_zh": result.get("label_zh", "未知"),
         "confidence": result.get("confidence", 0.0),
-        "malicious_score": result.get("malicious_score", 0.0),
         "probabilities": result.get("probabilities", {}),
         "flow_count": result.get("flow_count", 0),
         "flows": result.get("flows", []),

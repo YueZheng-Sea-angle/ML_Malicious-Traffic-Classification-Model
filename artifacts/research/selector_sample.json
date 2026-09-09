@@ -1,0 +1,475 @@
+{
+  "coverage": 0.95,
+  "selected": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    28,
+    29,
+    30,
+    31,
+    32,
+    34,
+    35,
+    37,
+    38,
+    39
+  ],
+  "selected_names": [
+    "pkt_count",
+    "byte_count",
+    "duration",
+    "pkt_rate",
+    "byte_rate",
+    "len_mean",
+    "len_std",
+    "len_min",
+    "len_max",
+    "len_median",
+    "len_p25",
+    "len_p75",
+    "len_skew",
+    "fwd_bwd_byte_ratio",
+    "direction_switch_rate",
+    "fwd_len_mean",
+    "bwd_len_mean",
+    "burst_count",
+    "mean_burst_size",
+    "iat_mean",
+    "iat_std",
+    "iat_min",
+    "iat_max",
+    "payload_entropy",
+    "printable_ratio",
+    "zero_byte_ratio",
+    "high_byte_ratio",
+    "tls_record_ratio",
+    "appdata_pkt_ratio",
+    "first_appdata_index",
+    "peer_flow_count",
+    "peer_concurrency",
+    "same_port_flow_ratio"
+  ],
+  "scores": [
+    {
+      "name": "same_port_flow_ratio",
+      "index": 39,
+      "contribution": 0.0881397343182801,
+      "detail": {
+        "mutual_info": 0.07618026003729378,
+        "variance": 0.002770629714661992,
+        "tree": 0.14278376090129583
+      }
+    },
+    {
+      "name": "peer_flow_count",
+      "index": 37,
+      "contribution": 0.07976174295039959,
+      "detail": {
+        "mutual_info": 0.0717960133423442,
+        "variance": 0.026090068184709596,
+        "tree": 0.11456330994149938
+      }
+    },
+    {
+      "name": "len_max",
+      "index": 8,
+      "contribution": 0.05754015882115434,
+      "detail": {
+        "mutual_info": 0.051464859716769104,
+        "variance": 0.056749367842961314,
+        "tree": 0.06401085341477994
+      }
+    },
+    {
+      "name": "byte_rate",
+      "index": 4,
+      "contribution": 0.04706730828739768,
+      "detail": {
+        "mutual_info": 0.027158038123766343,
+        "variance": 0.13421959071892214,
+        "tree": 0.023400437235384455
+      }
+    },
+    {
+      "name": "pkt_rate",
+      "index": 3,
+      "contribution": 0.04137038276374444,
+      "detail": {
+        "mutual_info": 0.02838302301192322,
+        "variance": 0.09865124829321155,
+        "tree": 0.025717309750935544
+      }
+    },
+    {
+      "name": "byte_count",
+      "index": 1,
+      "contribution": 0.04036615173621363,
+      "detail": {
+        "mutual_info": 0.03475415426902582,
+        "variance": 0.10266611455748377,
+        "tree": 0.014828167792867284
+      }
+    },
+    {
+      "name": "len_mean",
+      "index": 5,
+      "contribution": 0.03732243000699025,
+      "detail": {
+        "mutual_info": 0.035086735546103816,
+        "variance": 0.04854141162201417,
+        "tree": 0.033948633660458034
+      }
+    },
+    {
+      "name": "len_std",
+      "index": 6,
+      "contribution": 0.036242720465350875,
+      "detail": {
+        "mutual_info": 0.038476029004784335,
+        "variance": 0.04909754703719794,
+        "tree": 0.027581998640084513
+      }
+    },
+    {
+      "name": "len_p75",
+      "index": 11,
+      "contribution": 0.03596581359232607,
+      "detail": {
+        "mutual_info": 0.039979599086626745,
+        "variance": 0.05496235079466485,
+        "tree": 0.022453759496945926
+      }
+    },
+    {
+      "name": "iat_max",
+      "index": 26,
+      "contribution": 0.03405280775091073,
+      "detail": {
+        "mutual_info": 0.04108713909201441,
+        "variance": 0.006966083309526663,
+        "tree": 0.040561838630584206
+      }
+    },
+    {
+      "name": "duration",
+      "index": 2,
+      "contribution": 0.031199599349817423,
+      "detail": {
+        "mutual_info": 0.03716004197446211,
+        "variance": 0.009343871177255283,
+        "tree": 0.0361670208115318
+      }
+    },
+    {
+      "name": "fwd_bwd_byte_ratio",
+      "index": 17,
+      "contribution": 0.030278876288435137,
+      "detail": {
+        "mutual_info": 0.035061706279475004,
+        "variance": 0.047199462076085955,
+        "tree": 0.01703575340364556
+      }
+    },
+    {
+      "name": "len_median",
+      "index": 9,
+      "contribution": 0.03005472392865666,
+      "detail": {
+        "mutual_info": 0.03452470726170046,
+        "variance": 0.050515021136490985,
+        "tree": 0.015354591991770835
+      }
+    },
+    {
+      "name": "fwd_len_mean",
+      "index": 19,
+      "contribution": 0.028959579223807687,
+      "detail": {
+        "mutual_info": 0.03446495921766909,
+        "variance": 0.044033993499234356,
+        "tree": 0.01591699209230536
+      }
+    },
+    {
+      "name": "bwd_len_mean",
+      "index": 20,
+      "contribution": 0.027688571768250663,
+      "detail": {
+        "mutual_info": 0.02860957975682568,
+        "variance": 0.0524365536546414,
+        "tree": 0.014393572836549486
+      }
+    },
+    {
+      "name": "peer_concurrency",
+      "index": 38,
+      "contribution": 0.024990308998955907,
+      "detail": {
+        "mutual_info": 0.01743643358221178,
+        "variance": 0.024000268201022728,
+        "tree": 0.0330392048147291
+      }
+    },
+    {
+      "name": "appdata_pkt_ratio",
+      "index": 34,
+      "contribution": 0.0231150307166399,
+      "detail": {
+        "mutual_info": 0.014902204697438763,
+        "variance": 0.0011993149878612754,
+        "tree": 0.042285714600288134
+      }
+    },
+    {
+      "name": "iat_mean",
+      "index": 23,
+      "contribution": 0.021535142946831565,
+      "detail": {
+        "mutual_info": 0.029486227142845732,
+        "variance": 0.0012591832265733465,
+        "tree": 0.023722038611000352
+      }
+    },
+    {
+      "name": "iat_min",
+      "index": 25,
+      "contribution": 0.02138130355262631,
+      "detail": {
+        "mutual_info": 0.02475576550322473,
+        "variance": 0.0005067727273963407,
+        "tree": 0.02844410701469633
+      }
+    },
+    {
+      "name": "pkt_count",
+      "index": 0,
+      "contribution": 0.020843212180360473,
+      "detail": {
+        "mutual_info": 0.015794753805267705,
+        "variance": 0.044433844009854125,
+        "tree": 0.014096354640758525
+      }
+    },
+    {
+      "name": "tls_record_ratio",
+      "index": 32,
+      "contribution": 0.019935170305391083,
+      "detail": {
+        "mutual_info": 0.015161293687224991,
+        "variance": 0.0013334262347106018,
+        "tree": 0.034009918958947255
+      }
+    },
+    {
+      "name": "len_p25",
+      "index": 10,
+      "contribution": 0.018943075651968663,
+      "detail": {
+        "mutual_info": 0.025824343153843035,
+        "variance": 0.026825621112084846,
+        "tree": 0.008120535420083558
+      }
+    },
+    {
+      "name": "first_appdata_index",
+      "index": 35,
+      "contribution": 0.01860626537471675,
+      "detail": {
+        "mutual_info": 0.016229753425020737,
+        "variance": 0.0034422710713627835,
+        "tree": 0.02856477447613626
+      }
+    },
+    {
+      "name": "payload_entropy",
+      "index": 28,
+      "contribution": 0.018027000801239666,
+      "detail": {
+        "mutual_info": 0.017404348367109773,
+        "variance": 0.012987718350251781,
+        "tree": 0.02116929446090857
+      }
+    },
+    {
+      "name": "zero_byte_ratio",
+      "index": 30,
+      "contribution": 0.01633679440057202,
+      "detail": {
+        "mutual_info": 0.02220282033003266,
+        "variance": 0.003253807958719848,
+        "tree": 0.017012261692078316
+      }
+    },
+    {
+      "name": "high_byte_ratio",
+      "index": 31,
+      "contribution": 0.015260148188910638,
+      "detail": {
+        "mutual_info": 0.017616371331159786,
+        "variance": 0.00176672755990112,
+        "tree": 0.019650635361204403
+      }
+    },
+    {
+      "name": "mean_burst_size",
+      "index": 22,
+      "contribution": 0.0150587322146085,
+      "detail": {
+        "mutual_info": 0.01701637082954835,
+        "variance": 0.016554591188879565,
+        "tree": 0.012353164112570765
+      }
+    },
+    {
+      "name": "len_min",
+      "index": 7,
+      "contribution": 0.014889714129662928,
+      "detail": {
+        "mutual_info": 0.013864480144398209,
+        "variance": 0.016568529134224914,
+        "tree": 0.015075540612683876
+      }
+    },
+    {
+      "name": "burst_count",
+      "index": 21,
+      "contribution": 0.014537542466083336,
+      "detail": {
+        "mutual_info": 0.008831072421550928,
+        "variance": 0.04307210912336865,
+        "tree": 0.005976729182009427
+      }
+    },
+    {
+      "name": "iat_std",
+      "index": 24,
+      "contribution": 0.014325937991343546,
+      "detail": {
+        "mutual_info": 0.018906091498326883,
+        "variance": 0.002538835775215519,
+        "tree": 0.015639335592460037
+      }
+    },
+    {
+      "name": "len_skew",
+      "index": 12,
+      "contribution": 0.01415879386610569,
+      "detail": {
+        "mutual_info": 0.020718000987038483,
+        "variance": 0.005138097361961352,
+        "tree": 0.012109934997280468
+      }
+    },
+    {
+      "name": "direction_switch_rate",
+      "index": 18,
+      "contribution": 0.011563814804934897,
+      "detail": {
+        "mutual_info": 0.015508813926287763,
+        "variance": 0.00183212274443464,
+        "tree": 0.01248466171386107
+      }
+    },
+    {
+      "name": "printable_ratio",
+      "index": 29,
+      "contribution": 0.01086589152138016,
+      "detail": {
+        "mutual_info": 0.015742180915394293,
+        "variance": 0.001398270489816316,
+        "tree": 0.010723412643175114
+      }
+    },
+    {
+      "name": "fwd_ratio",
+      "index": 15,
+      "contribution": 0.00906437346988545,
+      "detail": {
+        "mutual_info": 0.014860886741060595,
+        "variance": 0.0007395142510747289,
+        "tree": 0.007430289808138329
+      }
+    },
+    {
+      "name": "bwd_ratio",
+      "index": 16,
+      "contribution": 0.008962894847773751,
+      "detail": {
+        "mutual_info": 0.014727012404255587,
+        "variance": 0.0007395142168832497,
+        "tree": 0.007310467606759575
+      }
+    },
+    {
+      "name": "handshake_pkt_ratio",
+      "index": 33,
+      "contribution": 0.0061806502858758345,
+      "detail": {
+        "mutual_info": 0.006106246453593989,
+        "variance": 0.0003014756519565706,
+        "tree": 0.009194641435132765
+      }
+    },
+    {
+      "name": "small_pkt_ratio",
+      "index": 13,
+      "contribution": 0.005563636122666162,
+      "detail": {
+        "mutual_info": 0.008944516629553211,
+        "variance": 0.0017955003097931495,
+        "tree": 0.0040668235222295285
+      }
+    },
+    {
+      "name": "tls13_hint",
+      "index": 36,
+      "contribution": 0.0047459392117863795,
+      "detail": {
+        "mutual_info": 0.006287430786279068,
+        "variance": 0.0023330851379086614,
+        "tree": 0.004410874674244414
+      }
+    },
+    {
+      "name": "large_pkt_ratio",
+      "index": 14,
+      "contribution": 0.0032212684178869887,
+      "detail": {
+        "mutual_info": 0.004413602991789946,
+        "variance": 0.0013254171707357389,
+        "tree": 0.0029768594675677095
+      }
+    },
+    {
+      "name": "idle_ratio",
+      "index": 27,
+      "contribution": 0.0018767562790581193,
+      "detail": {
+        "mutual_info": 0.003072132524758905,
+        "variance": 0.0004106683849461531,
+        "tree": 0.0014144239804180087
+      }
+    }
+  ]
+}

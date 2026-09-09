@@ -1,0 +1,58 @@
+{
+  "task": "tools11",
+  "framework": "lightgbm",
+  "class_names": [
+    "openvpn-udp",
+    "psiphon-tls",
+    "v2ray",
+    "clash",
+    "lantern",
+    "openvpn-tls",
+    "firefox",
+    "psiphon-tcp",
+    "wireguard-udp",
+    "shadowsocks",
+    "netch"
+  ],
+  "seed": 42,
+  "real_per_class": 5,
+  "n_flows": {
+    "train": 2312,
+    "val": 930
+  },
+  "A_baseline": {
+    "accuracy": 0.6613,
+    "macro_f1": 0.6639,
+    "per_class_recall": {
+      "openvpn-udp": 1.0,
+      "psiphon-tls": 1.0,
+      "v2ray": 0.5391,
+      "clash": 0.3125,
+      "lantern": 0.8438,
+      "openvpn-tls": 0.5,
+      "firefox": 1.0,
+      "psiphon-tcp": 0.6667,
+      "wireguard-udp": 0.5,
+      "shadowsocks": 0.7561,
+      "netch": 0.2609
+    }
+  },
+  "B_ngram": {
+    "accuracy": 0.6581,
+    "macro_f1": 0.7512,
+    "per_class_recall": {
+      "openvpn-udp": 1.0,
+      "psiphon-tls": 1.0,
+      "v2ray": 0.5547,
+      "clash": 0.2969,
+      "lantern": 0.8516,
+      "openvpn-tls": 1.0,
+      "firefox": 0.9922,
+      "psiphon-tcp": 0.6667,
+      "wireguard-udp": 1.0,
+      "shadowsocks": 0.7378,
+      "netch": 0.2348
+    }
+  },
+  "ngram_vocab_size": 1000
+}
