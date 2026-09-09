@@ -1,16 +1,17 @@
 """离线训练入口。
 
 用法：
-    # 合成数据（数据集到位前打通链路）
-    python -m ml.train --synthetic --epochs 8
-
-    # 真实数据集
+    # 按类别目录组织 PCAP（类别名 = ml.config.CLASS_NAMES）
     python -m ml.train --data-dir data/raw --epochs 30 --batch-size 64
 
+    # DataCon T1（11 类代理工具）/ T2（tunnel/normal）请走 research 装载器：
+    python -m ml.research.run_experiment --task tools
+    python -m ml.research.run_experiment --task agent
+
 产物：
-    artifacts/models/malflow_cnn_bilstm.pt   模型权重 + 标准化参数 + 特征掩码
-    artifacts/models/feature_report.json     特征贡献评估报告
-    artifacts/models/train_metrics.json      训练与验证指标
+    artifacts/models/malflow_datacon_tools.pt  模型权重 + 标准化参数 + 特征掩码
+    artifacts/models/feature_report.json       特征贡献评估报告
+    artifacts/models/train_metrics.json        训练与验证指标
 """
 
 from __future__ import annotations
@@ -27,28 +28,22 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
 from ml.config import CLASS_NAMES, DEFAULT_CHECKPOINT, MODEL_DIR
-from ml.data.dataset import (
-    build_dataset_from_pcaps,
-    make_synthetic_dataset,
-    split_dataset,
-)
+from ml.data.dataset import build_dataset_from_pcaps, split_dataset
 from ml.features.selection import FeatureSelector
 from ml.models.cnn_bilstm import build_model
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="恶意流量分类模型训练")
+    parser = argparse.ArgumentParser(description="加密代理/隧道工具分类模型训练（T1）")
     parser.add_argument("--data-dir", type=Path, default=None, help="按类别分目录存放的 PCAP 根目录")
-    parser.add_argument("--synthetic", action="store_true", help="使用合成数据集")
-    parser.add_argument("--samples-per-class", type=int, default=150)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--val-ratio", type=float, default=0.2)
     parser.add_argument("--coverage", type=float, default=0.95, help="特征累计贡献覆盖率")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--task-scope", type=str, default="family6",
-                        help="任务口径标识，写入 checkpoint：family6/tools11/agent2")
+    parser.add_argument("--task-scope", type=str, default="tools11",
+                        help="任务口径标识，写入 checkpoint：tools11/agent2")
     parser.add_argument("--class-weights", action="store_true",
                         help="按训练集类别频数倒数加权交叉熵（类别不平衡时启用）")
     parser.add_argument("--output", type=Path, default=DEFAULT_CHECKPOINT)
@@ -57,14 +52,12 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    if not args.data_dir:
+        raise SystemExit("请通过 --data-dir 指定按类别组织的 PCAP 根目录")
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
-    batch = (
-        build_dataset_from_pcaps(args.data_dir)
-        if args.data_dir and not args.synthetic
-        else make_synthetic_dataset(args.samples_per_class, seed=args.seed)
-    )
+    batch = build_dataset_from_pcaps(args.data_dir)
     class_names = list(batch.class_names)
     train_set, val_set = split_dataset(batch, val_ratio=args.val_ratio, seed=args.seed)
     print(f"[数据] 训练 {len(train_set)} 条 / 验证 {len(val_set)} 条 / 类别 {len(class_names)}")
@@ -210,7 +203,7 @@ def _per_class_recall(y_true: np.ndarray, y_pred: np.ndarray,
 
 def _save_checkpoint(path: Path, model, mean, std, selector: FeatureSelector, metrics,
                      class_names: Optional[List[str]] = None,
-                     task_scope: str = "family6") -> None:
+                     task_scope: str = "tools11") -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(

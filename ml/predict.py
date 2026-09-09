@@ -1,12 +1,13 @@
 """推理入口：PCAP 文件 -> 流级与文件级分类结果。
 
-后端通过 ``get_predictor()`` 获取全局单例。运行模式两种：
+产品分类口径为 DataCon T1（11 类加密代理/隧道工具形态识别），类别顺序与
+checkpoint 中保存的 class_names 一致，中文表取自 ml.config。
 
-    model      已训练权重 + PyTorch 可用，走 MalFlowNet
-    heuristic  权重缺失或 torch 未安装，走类别先验最近邻打分
+运行模式两种：
+    model        已训练权重 + PyTorch 可用，走 MalFlowNet（tools11）
+    unavailable  权重缺失或 torch 未安装，返回占位结果（不再提供家族启发式推理）
 
-两种模式返回结构完全一致，前端与接口契约不受影响；结果中的 ``mode``
-字段用于界面提示当前是否为演示推理。
+两种模式返回结构一致，前端与接口契约不受影响；结果中的 ``mode`` 字段用于界面提示。
 
 命令行自测：
     python -m ml.predict --file some.pcap
@@ -33,6 +34,9 @@ try:
 except Exception:  # pragma: no cover - 取决于运行环境
     TORCH_AVAILABLE = False
 
+LABEL_UNKNOWN = "unknown"
+LABEL_UNKNOWN_ZH = "无法分类（无可用权重）"
+
 
 @dataclass
 class FlowPrediction:
@@ -57,7 +61,7 @@ class FlowPrediction:
 class Predictor:
     def __init__(self, checkpoint: Optional[Path] = None) -> None:
         self.checkpoint_path = Path(checkpoint or DEFAULT_CHECKPOINT)
-        self.mode = "heuristic"
+        self.mode = "unavailable"
         self.model = None
         self.stat_mean: Optional[np.ndarray] = None
         self.stat_std: Optional[np.ndarray] = None
@@ -89,7 +93,7 @@ class Predictor:
             self.class_names_zh = {n: CLASS_NAMES_ZH.get(n, n) for n in self.class_names}
             self.mode = "model"
         except Exception as exc:  # 权重损坏不应导致服务不可用
-            print(f"[predict] 加载权重失败，回退启发式推理：{exc}")
+            print(f"[predict] 加载权重失败：{exc}")
 
     def info(self) -> Dict[str, object]:
         return {
@@ -106,6 +110,19 @@ class Predictor:
     def predict_file(self, path: Path, max_flows: int = 64) -> Dict[str, object]:
         samples = pcap_to_samples(Path(path), max_flows=max_flows)
         flow_results = [self.predict_sample(s) for s in samples]
+        if self.mode != "model":
+            names = self.class_names
+            return {
+                "file": Path(path).name,
+                "mode": self.mode,
+                "flow_count": len(flow_results),
+                "flows": [f.to_dict() for f in flow_results],
+                "label": LABEL_UNKNOWN,
+                "label_zh": LABEL_UNKNOWN_ZH,
+                "confidence": 0.0,
+                "probabilities": {name: 0.0 for name in names},
+                "top_features": self.explain(samples),
+            }
         return {
             "file": Path(path).name,
             "mode": self.mode,
@@ -116,11 +133,18 @@ class Predictor:
         }
 
     def predict_sample(self, sample: FlowSample) -> FlowPrediction:
-        probs = (
-            self._probs_model(sample) if self.mode == "model" else self._probs_heuristic(sample)
-        )
-        best = int(np.argmax(probs))
         names = self.class_names
+        if self.mode != "model":
+            return FlowPrediction(
+                flow_id=sample.flow_id,
+                label=LABEL_UNKNOWN,
+                label_zh=LABEL_UNKNOWN_ZH,
+                confidence=0.0,
+                probabilities={name: 0.0 for name in names},
+                meta=sample.meta,
+            )
+        probs = self._probs_model(sample)
+        best = int(np.argmax(probs))
         return FlowPrediction(
             flow_id=sample.flow_id,
             label=names[best],
@@ -142,7 +166,7 @@ class Predictor:
                 )[1].mean(dim=0).numpy()
             weights = gate
         else:
-            # 启发式模式下以「偏离全局均值的程度」近似贡献
+            # 未加载权重时以「偏离均值的程度」近似贡献
             weights = np.abs(stats.mean(axis=0)) / (np.abs(stats).mean(axis=0) + 1e-6)
         order = np.argsort(weights)[::-1][:top_k]
         return [
@@ -169,41 +193,12 @@ class Predictor:
             )
             return torch.softmax(out["logits"], dim=-1)[0].numpy()
 
-    def _probs_heuristic(self, sample: FlowSample) -> np.ndarray:
-        """按类别先验做加权最近邻，保证同一文件结果可复现。"""
-        from ml.data.dataset import _CLASS_PROFILES
-
-        index = {name: i for i, name in enumerate(STAT_FEATURE_NAMES)}
-        observed = np.array(
-            [
-                sample.stats[index["len_mean"]] / 1500.0,
-                sample.stats[index["iat_mean"]],
-                sample.stats[index["fwd_ratio"]],
-                sample.stats[index["pkt_count"]] / 120.0,
-            ]
-        )
-        distances = []
-        for name in CLASS_NAMES:
-            profile = _CLASS_PROFILES[name]
-            expected = np.array(
-                [
-                    profile["base_len"] / 1500.0,
-                    profile["iat"],
-                    profile["fwd_p"],
-                    float(np.mean(profile["pkts"])) / 120.0,
-                ]
-            )
-            distances.append(float(np.sum(((observed - expected) / np.array([0.3, 0.4, 0.25, 0.4])) ** 2)))
-        logits = -np.asarray(distances)
-        exp = np.exp(logits - logits.max())
-        return exp / exp.sum()
-
     def _aggregate(self, flows: List[FlowPrediction]) -> Dict[str, object]:
-        """文件级结论：以全部流平均概率聚合；正常类占比决定恶意分数。"""
+        """文件级结论：以全部流平均概率聚合，取最大类作为文件级判定。"""
         names = list(self.class_names)
         if not flows:
             return {
-                "label": "unknown",
+                "label": LABEL_UNKNOWN,
                 "label_zh": "无有效流",
                 "confidence": 0.0,
                 "probabilities": {name: 0.0 for name in names},
@@ -211,16 +206,10 @@ class Predictor:
         matrix = np.stack([[f.probabilities[name] for name in names] for f in flows])
         mean_probs = matrix.mean(axis=0)
         best = int(np.argmax(mean_probs))
-        # 恶意分数 = 1 − P(正常类)；无 normal/benign 类标注（如纯工具识别）时退化为 1 − P(top1)
-        benign_idx = names.index("benign") if "benign" in names else (
-            names.index("normal") if "normal" in names else None)
-        malicious = 1.0 - float(mean_probs[benign_idx]) if benign_idx is not None \
-            else 1.0 - float(mean_probs[best])
         return {
             "label": names[best],
             "label_zh": self.class_names_zh.get(names[best], names[best]),
             "confidence": round(float(mean_probs[best]), 4),
-            "malicious_score": round(malicious, 4),
             "probabilities": {n: round(float(p), 4) for n, p in zip(names, mean_probs)},
         }
 
@@ -239,7 +228,7 @@ def get_predictor(checkpoint: Optional[Path] = None, reload: bool = False) -> Pr
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="恶意流量分类推理")
+    parser = argparse.ArgumentParser(description="加密代理/隧道工具分类推理")
     parser.add_argument("--file", type=Path, required=True, help="PCAP 文件路径")
     parser.add_argument("--checkpoint", type=Path, default=None)
     args = parser.parse_args()

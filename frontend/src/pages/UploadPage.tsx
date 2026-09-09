@@ -114,7 +114,7 @@ export default function UploadPage() {
             <>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-500">文件级判定</p>
+                  <p className="text-xs text-slate-500">文件级判定（T1 工具识别）</p>
                   <p className="stat-value">{task.result.label_zh}</p>
                 </div>
                 <Badge tone={labelTone(task.result.label)}>
@@ -122,19 +122,8 @@ export default function UploadPage() {
                 </Badge>
               </div>
 
-              <div>
-                <div className="mb-1 flex justify-between text-xs text-slate-500">
-                  <span>恶意可能性</span>
-                  <span>{formatPercent(task.result.malicious_score)}</span>
-                </div>
-                <Progress
-                  value={task.result.malicious_score}
-                  barClassName={task.result.malicious_score > 0.5 ? "bg-rose-500" : "bg-emerald-500"}
-                />
-              </div>
-
               <div className="space-y-2">
-                <p className="text-xs font-medium text-slate-500">各类别概率</p>
+                <p className="text-xs font-medium text-slate-500">各工具类别概率</p>
                 {Object.entries(task.result.probabilities)
                   .sort((a, b) => b[1] - a[1])
                   .map(([name, value]) => (

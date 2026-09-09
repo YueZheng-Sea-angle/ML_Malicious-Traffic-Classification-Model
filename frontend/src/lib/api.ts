@@ -8,7 +8,7 @@ export interface Health {
   status: string;
   app_name: string;
   version: string;
-  inference_mode: "model" | "heuristic" | "unavailable";
+  inference_mode: "model" | "unavailable";
   torch_available: boolean;
 }
 
@@ -38,7 +38,6 @@ export interface TaskResult {
   label: string;
   label_zh: string;
   confidence: number;
-  malicious_score: number;
   probabilities: Record<string, number>;
   flow_count: number;
   flows: FlowResult[];

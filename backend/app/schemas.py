@@ -12,7 +12,7 @@ class HealthResponse(BaseModel):
     status: str = "ok"
     app_name: str
     version: str
-    inference_mode: str = Field(description="model=已加载权重，heuristic=演示推理")
+    inference_mode: str = Field(description="model=已加载权重，unavailable=无可用权重")
     torch_available: bool
 
 
@@ -49,7 +49,6 @@ class TaskResult(BaseModel):
     label: str
     label_zh: str
     confidence: float
-    malicious_score: float = 0.0
     probabilities: Dict[str, float]
     flow_count: int
     flows: List[FlowResult] = []

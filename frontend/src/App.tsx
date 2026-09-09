@@ -32,8 +32,8 @@ export default function App() {
         <div className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-4">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-6 w-6 text-brand-600" />
-            <span className="text-lg font-semibold text-slate-900">恶意流量分类系统</span>
-            <span className="text-xs text-slate-400">TLS 1.3 加密流量识别</span>
+            <span className="text-lg font-semibold text-slate-900">加密代理工具识别系统</span>
+            <span className="text-xs text-slate-400">DataCon T1 · 11 类代理/隧道工具</span>
           </div>
           <nav className="flex items-center gap-1">
             {NAV.map(({ to, label, icon: Icon }) => (
@@ -71,7 +71,7 @@ export default function App() {
       </main>
 
       <footer className="border-t border-slate-200 bg-white py-3 text-center text-xs text-slate-400">
-        基于深度学习方法的恶意流量分类模型
+        基于深度学习的加密代理/隧道流量工具识别与特征分析
       </footer>
     </div>
   );
@@ -80,11 +80,12 @@ export default function App() {
 function ServiceBadge({ health, error }: { health: Health | null; error: string | null }) {
   if (error) return <Badge tone="danger">后端未连接</Badge>;
   if (!health) return <Badge tone="neutral">检测中…</Badge>;
+  const mode = health.inference_mode;
   return (
     <div className="flex items-center gap-2">
       <Badge tone="success">后端 v{health.version}</Badge>
-      <Badge tone={health.inference_mode === "model" ? "info" : "warning"}>
-        {health.inference_mode === "model" ? "已加载模型权重" : "演示推理模式"}
+      <Badge tone={mode === "model" ? "info" : "neutral"}>
+        {mode === "model" ? "已加载模型权重" : "模型未加载"}
       </Badge>
     </div>
   );

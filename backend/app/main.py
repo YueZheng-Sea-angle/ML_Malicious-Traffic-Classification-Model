@@ -20,7 +20,7 @@ settings = get_settings()
 app = FastAPI(
     title=settings.app_name,
     version=settings.version,
-    description="基于深度学习的 TLS 1.3 加密恶意流量分类系统 · 后端 API",
+    description="基于深度学习的加密代理/隧道流量工具识别系统 · 后端 API（DataCon T1 口径）",
     docs_url="/docs",
     openapi_url="/openapi.json",
 )

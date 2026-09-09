@@ -33,7 +33,7 @@ def test_health(client):
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
-    assert body["inference_mode"] in {"model", "heuristic", "unavailable"}
+    assert body["inference_mode"] in {"model", "unavailable"}
 
 
 def test_upload_rejects_bad_suffix(client):
@@ -58,6 +58,10 @@ def test_upload_and_classify(client):
     assert 0.0 <= result["confidence"] <= 1.0
     assert pytest.approx(sum(result["probabilities"].values()), abs=1e-3) == 1.0
     assert len(result["flows"]) == result["flow_count"]
+    assert "malicious_score" not in result
+    if result["mode"] == "model":
+        assert result["label"] in result["probabilities"]
+        assert len(result["probabilities"]) == len(result["flows"][0]["probabilities"])
 
 
 def test_task_not_found(client):

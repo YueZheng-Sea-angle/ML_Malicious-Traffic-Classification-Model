@@ -21,7 +21,7 @@ class ModelRegistry:
         metrics = _read_metrics(settings.model_dir / "train_metrics.json")
 
         models: List[Dict[str, object]] = []
-        for path in sorted(settings.model_dir.glob("*.pt")):
+        for path in self._sorted_weights():
             model_id = path.stem
             models.append(
                 {
@@ -40,32 +40,39 @@ class ModelRegistry:
         if not models:
             models.append(
                 {
-                    "model_id": "heuristic-baseline",
-                    "name": "启发式基线（类别先验最近邻）",
+                    "model_id": "unavailable-baseline",
+                    "name": "暂无可用权重（推理不可用）",
                     "version": "0.0.1",
-                    "framework": "NumPy",
+                    "framework": "—",
                     "is_active": True,
                     "accuracy": None,
                     "macro_f1": None,
                     "trained_at": None,
                     "selected_features": [],
-                    "description": "尚未训练权重时的演示模型，用于打通前后端链路",
+                    "description": "artifacts/models 下没有 .pt 权重，推理返回占位结果",
                 }
             )
         return models
 
+    def _sorted_weights(self) -> List[Path]:
+        weights = sorted(self.model_dir_weights())
+        # T1（tools11）默认模型优先作为默认激活
+        return sorted(weights, key=lambda p: (p.stem != "malflow_datacon_tools", p.name))
+
+    def model_dir_weights(self) -> List[Path]:
+        return list(get_settings().model_dir.glob("*.pt"))
+
     def active_id(self, models_exist: bool = False) -> Optional[str]:
         if self._active_id:
             return self._active_id
-        settings = get_settings()
-        weights = sorted(settings.model_dir.glob("*.pt"))
+        weights = self._sorted_weights()
         if weights:
             return weights[0].stem
-        return None if models_exist else "heuristic-baseline"
+        return None if models_exist else "unavailable-baseline"
 
     def activate(self, model_id: str) -> Dict[str, object]:
         settings = get_settings()
-        if model_id == "heuristic-baseline":
+        if model_id == "unavailable-baseline":
             self._active_id = model_id
             return reload_predictor(settings.model_dir / "__not_exist__.pt")
         path = settings.model_dir / f"{model_id}.pt"

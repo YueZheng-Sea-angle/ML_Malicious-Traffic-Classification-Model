@@ -10,46 +10,54 @@ PCAP ──extractor.extract_flows──> Flow(五元组 + 包序列)
         └── _byte_sequence           256 维首部字节序列
                     │
                     ├── FeatureSelector  离线评估贡献 -> 0/1 掩码
-                    └── MalFlowNet       三路编码 + 门控融合 -> 6 类概率
+                    └── MalFlowNet       三路编码 + 门控融合 -> 11 类代理/隧道工具概率
 ```
 
 ## 类别定义
 
-类别顺序即标签 id，训练与推理共用 `ml/config.py` 的 `CLASS_NAMES`：
+类别顺序即标签 id，与 DataCon2021-ETA part1 官方 11 类顺序一致，训练与推理共用
+`ml/config.py` 的 `CLASS_NAMES`：
 
 | id | label | 中文 |
 |----|-------|------|
-| 0 | benign | 正常流量 |
-| 1 | botnet | 僵尸网络 |
-| 2 | ransomware | 勒索软件 |
-| 3 | trojan | 木马 |
-| 4 | cryptomining | 挖矿 |
-| 5 | ddos | DDoS 攻击 |
+| 0 | openvpn-udp | OpenVPN（UDP） |
+| 1 | psiphon-tls | Psiphon（TLS） |
+| 2 | v2ray | V2Ray |
+| 3 | clash | Clash |
+| 4 | lantern | Lantern |
+| 5 | openvpn-tls | OpenVPN（TLS） |
+| 6 | firefox | Firefox 直连 |
+| 7 | psiphon-tcp | Psiphon（TCP） |
+| 8 | wireguard-udp | WireGuard（UDP） |
+| 9 | shadowsocks | Shadowsocks |
+| 10 | netch | Netch |
 
-正式数据集的标签体系确认后，只需修改 `CLASS_NAMES` 与 `CLASS_NAMES_ZH`，
-其余代码无需改动。
+需要调整任务口径时，只需修改 `CLASS_NAMES` 与 `CLASS_NAMES_ZH`，其余代码无需改动。
 
 ## 常用命令
 
 ```bash
 # 项目根目录（project/）下执行
-python -m ml.train --synthetic --epochs 8          # 合成数据训练
-python -m ml.train --data-dir data/raw --epochs 30 # 真实数据训练
+python -m ml.train --data-dir data/raw --epochs 30 # 按类别目录组织的真实数据训练
 python -m ml.predict --file sample.pcap            # 单文件推理
 python -m ml.models.cnn_bilstm                     # 网络结构形状自检
+
+# DataCon T1/T2（经 research 装载器转换后走同一训练循环）
+python -m ml.research.run_experiment --task tools  # T1：11 类工具形态识别
+python -m ml.research.run_experiment --task agent  # T2：隧道/正常二元
 ```
 
 ## 训练产物
 
 | 文件 | 内容 |
 |------|------|
-| `artifacts/models/malflow_cnn_bilstm.pt` | 权重、标准化参数、特征掩码、指标 |
+| `artifacts/models/malflow_datacon_tools.pt` | T1 权重、标准化参数、特征掩码、指标 |
 | `artifacts/models/feature_report.json` | 各特征贡献度与入选列表 |
 | `artifacts/models/train_metrics.json` | 逐轮训练/验证指标 |
 
-## 待办（第 2 周）
+## 待办
 
-- [ ] 接入正式数据集，替换合成样本
+- [ ] 全量 real_data（1000 文件）扩充训练样本并复核 T1 指标
 - [ ] 补充混淆矩阵与 PR 曲线绘制脚本
 - [ ] 特征选择结果与门控权重的一致性分析（写入概要设计）
 - [ ] 模型轻量化以满足在线推理时延要求
