@@ -12,11 +12,13 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.services.storage import get_store
+from app.services.user_store import get_user_store
 
 
 @pytest.fixture()
 def client():
     get_store().clear()
+    get_user_store().clear()
     with TestClient(app) as c:
         yield c
 
@@ -80,6 +82,64 @@ def test_models_and_stats(client):
     stats = client.get("/api/tasks/stats")
     assert stats.status_code == 200
     assert "total_tasks" in stats.json()
+
+
+def test_auth_register_login_profile(client):
+    register = client.post(
+        "/api/auth/register",
+        json={
+            "username": "tester",
+            "email": "tester@example.com",
+            "password": "secret12",
+            "display_name": "测试员",
+        },
+    )
+    assert register.status_code == 201
+    body = register.json()
+    token = body["access_token"]
+    assert body["user"]["username"] == "tester"
+
+    me = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me.status_code == 200
+    assert me.json()["display_name"] == "测试员"
+
+    updated = client.put(
+        "/api/auth/profile",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"display_name": "更新名称", "email": "tester@example.com"},
+    )
+    assert updated.status_code == 200
+    assert updated.json()["display_name"] == "更新名称"
+
+    changed = client.post(
+        "/api/auth/change-password",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"current_password": "secret12", "new_password": "newsecret12"},
+    )
+    assert changed.status_code == 200
+    assert changed.json()["ok"] is True
+
+    login = client.post(
+        "/api/auth/login",
+        json={"username": "tester", "password": "newsecret12"},
+    )
+    assert login.status_code == 200
+    assert login.json()["user"]["username"] == "tester"
+
+
+def test_auth_rejects_duplicate_username(client):
+    payload = {
+        "username": "dupuser",
+        "email": "a@example.com",
+        "password": "secret12",
+    }
+    assert client.post("/api/auth/register", json=payload).status_code == 201
+    dup = client.post("/api/auth/register", json={**payload, "email": "b@example.com"})
+    assert dup.status_code == 400
+
+
+def test_auth_requires_token(client):
+    assert client.get("/api/auth/me").status_code == 401
 
 
 def _wait_for_completion(client, task_id: str, timeout: float = 30.0) -> dict:
