@@ -26,6 +26,7 @@ artifacts/uploads/*
 artifacts/models/*
 !artifacts/models/.gitkeep
 artifacts/logs/
+artifacts/users.json
 *.pth
 *.pt
 *.ckpt
