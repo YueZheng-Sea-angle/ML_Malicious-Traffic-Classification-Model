@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import get_settings
-from app.routers import health, models, tasks, traffic
+from app.routers import auth, health, models, tasks, traffic
 
 settings = get_settings()
 
@@ -34,6 +34,7 @@ app.add_middleware(
 )
 
 API_PREFIX = "/api"
+app.include_router(auth.router, prefix=API_PREFIX)
 app.include_router(health.router, prefix=API_PREFIX)
 app.include_router(traffic.router, prefix=API_PREFIX)
 app.include_router(tasks.router, prefix=API_PREFIX)

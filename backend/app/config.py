@@ -27,6 +27,7 @@ class Settings:
         self.version: str = "0.1.0"
         self.upload_dir: Path = _resolve(os.getenv("MALFLOW_UPLOAD_DIR", "artifacts/uploads"))
         self.model_dir: Path = _resolve(os.getenv("MALFLOW_MODEL_DIR", "artifacts/models"))
+        self.users_file: Path = _resolve(os.getenv("MALFLOW_USERS_FILE", "artifacts/users.json"))
         self.max_upload_mb: int = int(os.getenv("MALFLOW_MAX_UPLOAD_MB", "200"))
         self.cors_origins: List[str] = [
             origin.strip()
