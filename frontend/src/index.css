@@ -17,4 +17,34 @@
   .stat-value {
     @apply text-2xl font-semibold tabular-nums text-slate-900;
   }
+
+  .app-shell {
+    background:
+      radial-gradient(circle at top right, rgba(59, 108, 246, 0.08), transparent 42%),
+      radial-gradient(circle at bottom left, rgba(15, 23, 42, 0.04), transparent 40%),
+      #f8fafc;
+  }
+
+  .auth-shell {
+    @apply flex min-h-full items-center justify-center px-4 py-10;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(59, 108, 246, 0.18), transparent 35%),
+      radial-gradient(circle at 80% 0%, rgba(37, 69, 173, 0.12), transparent 30%),
+      linear-gradient(180deg, #eef4ff 0%, #f8fafc 45%, #f1f5f9 100%);
+  }
+
+  .auth-panel {
+    animation: fade-up 0.45s ease-out;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

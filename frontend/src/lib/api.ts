@@ -3,6 +3,35 @@
  */
 
 const BASE = import.meta.env.VITE_API_BASE ?? "/api";
+const TOKEN_KEY = "malflow_token";
+
+export function getAuthToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setAuthToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearAuthToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+export interface User {
+  user_id: string;
+  username: string;
+  email: string;
+  display_name: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: User;
+}
 
 export interface Health {
   status: string;
@@ -106,16 +135,67 @@ export interface EvalJob {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE}${path}`, init);
+  const headers = new Headers(init?.headers);
+  const token = getAuthToken();
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  const response = await fetch(`${BASE}${path}`, { ...init, headers });
   if (!response.ok) {
     const detail = await response.json().catch(() => ({}));
-    throw new Error(detail?.detail ?? `请求失败（${response.status}）`);
+    const message =
+      typeof detail?.detail === "string"
+        ? detail.detail
+        : Array.isArray(detail?.detail)
+          ? detail.detail.map((item: { msg?: string }) => item.msg).filter(Boolean).join("；")
+          : `请求失败（${response.status}）`;
+    throw new Error(message);
+  }
+  if (response.status === 204) {
+    return undefined as T;
   }
   return (await response.json()) as T;
 }
 
 export const api = {
   health: () => request<Health>("/health"),
+
+  register: (payload: {
+    username: string;
+    email: string;
+    password: string;
+    display_name?: string;
+  }) =>
+    request<AuthResponse>("/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
+
+  login: (payload: { username: string; password: string }) =>
+    request<AuthResponse>("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
+
+  logout: () => request<{ ok: boolean }>("/auth/logout", { method: "POST" }),
+
+  me: () => request<User>("/auth/me"),
+
+  updateProfile: (payload: { display_name?: string; email?: string }) =>
+    request<User>("/auth/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
+
+  changePassword: (payload: { current_password: string; new_password: string }) =>
+    request<{ ok: boolean }>("/auth/change-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
 
   uploadFile: (file: File) => {
     const form = new FormData();
