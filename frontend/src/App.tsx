@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Navigate, Outlet, Route, Routes } from "react-router-dom";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -37,7 +38,7 @@ export default function App() {
           <Route path="/models" element={<ModelsPage />} />
           <Route path="/evaluate" element={<EvaluatePage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="*" element={<p className="text-slate-500">页面不存在</p>} />
+          <Route path="*" element={<p className="text-slate-500 dark:text-slate-400">页面不存在</p>} />
         </Route>
       </Route>
     </Routes>
@@ -58,15 +59,17 @@ function AppLayout() {
 
   return (
     <div className="app-shell flex min-h-full flex-col">
-      <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/90">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-6 py-3">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md shadow-brand-600/20">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-base font-semibold text-slate-900">加密代理工具识别系统</p>
-              <p className="text-xs text-slate-400">DataCon T1 · 11 类代理/隧道工具</p>
+              <p className="text-base font-semibold text-slate-900 dark:text-slate-100">
+                加密代理工具识别系统
+              </p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">DataCon T1 · 11 类代理/隧道工具</p>
             </div>
           </div>
 
@@ -79,8 +82,8 @@ function AppLayout() {
                   cn(
                     "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-brand-50 text-brand-700 shadow-sm"
-                      : "text-slate-600 hover:bg-slate-100",
+                      ? "bg-brand-50 text-brand-700 shadow-sm dark:bg-brand-950/50 dark:text-brand-100"
+                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800",
                   )
                 }
               >
@@ -91,15 +94,18 @@ function AppLayout() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <ServiceBadge health={health} error={error} />
             {user ? (
-              <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2 py-1">
+              <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2 py-1 dark:border-slate-700 dark:bg-slate-900">
                 <NavLink
                   to="/profile"
                   className={({ isActive }) =>
                     cn(
                       "flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors",
-                      isActive ? "bg-white text-brand-700 shadow-sm" : "text-slate-700 hover:bg-white",
+                      isActive
+                        ? "bg-white text-brand-700 shadow-sm dark:bg-slate-800 dark:text-brand-100"
+                        : "text-slate-700 hover:bg-white dark:text-slate-200 dark:hover:bg-slate-800",
                     )
                   }
                 >
@@ -119,7 +125,7 @@ function AppLayout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-slate-200 bg-white/80 py-4 text-center text-xs text-slate-400">
+      <footer className="border-t border-slate-200 bg-white/80 py-4 text-center text-xs text-slate-400 dark:border-slate-800 dark:bg-slate-950/80 dark:text-slate-500">
         基于深度学习的加密代理/隧道流量工具识别与特征分析 · MalFlow v0.1
       </footer>
     </div>

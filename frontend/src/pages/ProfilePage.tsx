@@ -84,25 +84,25 @@ export default function ProfilePage() {
               {user.display_name.slice(0, 1).toUpperCase()}
             </div>
             <div>
-              <p className="text-lg font-semibold text-slate-900">{user.display_name}</p>
-              <p className="text-sm text-slate-500">@{user.username}</p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{user.display_name}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">@{user.username}</p>
             </div>
           </div>
 
           <dl className="space-y-3 text-sm">
-            <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-              <dt className="text-slate-500">角色</dt>
+            <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/50">
+              <dt className="text-slate-500 dark:text-slate-400">角色</dt>
               <dd>
                 <Badge tone="info">{user.role}</Badge>
               </dd>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-              <dt className="text-slate-500">注册时间</dt>
-              <dd className="text-slate-700">{formatTime(user.created_at)}</dd>
+            <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/50">
+              <dt className="text-slate-500 dark:text-slate-400">注册时间</dt>
+              <dd className="text-slate-700 dark:text-slate-300">{formatTime(user.created_at)}</dd>
             </div>
-            <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-              <dt className="text-slate-500">最近更新</dt>
-              <dd className="text-slate-700">{formatTime(user.updated_at)}</dd>
+            <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/50">
+              <dt className="text-slate-500 dark:text-slate-400">最近更新</dt>
+              <dd className="text-slate-700 dark:text-slate-300">{formatTime(user.updated_at)}</dd>
             </div>
           </dl>
         </CardBody>
@@ -131,11 +131,9 @@ export default function ProfilePage() {
                 required
               />
 
-              {profileError ? (
-                <p className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{profileError}</p>
-              ) : null}
+              {profileError ? <p className="msg-error">{profileError}</p> : null}
               {profileMessage ? (
-                <p className="flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                <p className="msg-success">
                   <Check className="h-4 w-4" />
                   {profileMessage}
                 </p>
@@ -189,11 +187,9 @@ export default function ProfilePage() {
                 required
               />
 
-              {passwordError ? (
-                <p className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{passwordError}</p>
-              ) : null}
+              {passwordError ? <p className="msg-error">{passwordError}</p> : null}
               {passwordMessage ? (
-                <p className="flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                <p className="msg-success">
                   <Check className="h-4 w-4" />
                   {passwordMessage}
                 </p>

@@ -2,6 +2,7 @@ import { Loader2, ShieldCheck, UserPlus } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
+import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -48,16 +49,19 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-shell">
+      <ThemeToggle className="absolute right-4 top-4" />
       <div className="auth-panel mx-auto w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-600/30">
             <ShieldCheck className="h-7 w-7" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">创建账号</h1>
-          <p className="mt-2 text-sm text-slate-500">注册后即可使用流量上传与模型分析功能</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">创建账号</h1>
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            注册后即可使用流量上传与模型分析功能
+          </p>
         </div>
 
-        <Card className="border-0 shadow-xl shadow-slate-200/60">
+        <Card className="border-0 shadow-xl shadow-slate-200/60 dark:shadow-none">
           <CardHeader title="新用户注册" description="用户名为 3–32 位字母、数字或下划线" />
           <CardBody>
             <form className="space-y-4" onSubmit={(e) => void handleSubmit(e)}>
@@ -112,7 +116,7 @@ export default function RegisterPage() {
               />
 
               {error ? (
-                <p className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>
+                <p className="msg-error">{error}</p>
               ) : null}
 
               <Button type="submit" className="w-full" disabled={submitting}>
