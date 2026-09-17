@@ -62,7 +62,9 @@ export default function UploadPage() {
             }}
             className={cn(
               "flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors",
-              dragging ? "border-brand-500 bg-brand-50" : "border-slate-300 bg-slate-50",
+              dragging
+                ? "border-brand-500 bg-brand-50 dark:bg-brand-950/40"
+                : "border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800/40",
             )}
           >
             {busy ? (
@@ -70,7 +72,7 @@ export default function UploadPage() {
             ) : (
               <FileUp className="h-10 w-10 text-slate-400" />
             )}
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               {busy ? message : "将流量文件拖拽到此处，或点击下方按钮选择"}
             </p>
             <input
@@ -90,7 +92,7 @@ export default function UploadPage() {
           </div>
 
           {phase === "error" ? (
-            <p className="mt-4 rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{message}</p>
+            <p className="msg-error mt-4">{message}</p>
           ) : null}
         </CardBody>
       </Card>

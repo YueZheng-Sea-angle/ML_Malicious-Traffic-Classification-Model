@@ -83,7 +83,7 @@ export default function EvaluatePage() {
   return (
     <div className="space-y-6">
       {error ? (
-        <p className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>
+        <p className="msg-error">{error}</p>
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-5">
@@ -100,7 +100,7 @@ export default function EvaluatePage() {
                   <Badge tone={activeModel.model_id.includes("ngram") ? "warning" : "info"}>
                     {activeModel.model_id.includes("ngram") ? "B · n-gram 增强" : "A · 基线"}
                   </Badge>
-                  <span className="truncate font-mono text-xs text-slate-700">
+                  <span className="truncate font-mono text-xs text-slate-700 dark:text-slate-300">
                     {activeModel.model_id}
                   </span>
                 </div>
@@ -118,9 +118,9 @@ export default function EvaluatePage() {
                 step={5}
                 value={ratio}
                 onChange={(e) => setRatio(Number(e.target.value))}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
               />
-              <span className="mt-1 block text-xs text-slate-400">
+              <span className="mt-1 block text-xs text-slate-400 dark:text-slate-500">
                 按文件分层随机划分：训练 {ratio}% / 测试 {100 - ratio}%
               </span>
             </label>
@@ -133,9 +133,9 @@ export default function EvaluatePage() {
                 max={100}
                 value={perClass}
                 onChange={(e) => setPerClass(Number(e.target.value))}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
               />
-              <span className="mt-1 block text-xs text-slate-400">
+              <span className="mt-1 block text-xs text-slate-400 dark:text-slate-500">
                 每类从 real_data 随机抽取的文件数（避免全量解析过慢）
               </span>
             </label>
@@ -173,9 +173,7 @@ export default function EvaluatePage() {
                 正在解析流量并训练 LightGBM（{job.variant} 变体）…
               </p>
             ) : job.status === "failed" ? (
-              <p className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                {job.error ?? "测试失败"}
-              </p>
+              <p className="msg-error">{job.error ?? "测试失败"}</p>
             ) : (
               job.result && <ResultView job={job} />
             )}
@@ -207,10 +205,12 @@ function ResultView({ job }: { job: EvalJob }) {
       </div>
 
       <section>
-        <h4 className="mb-2 text-sm font-medium text-slate-700">逐类召回（11 类代理/隧道工具）</h4>
-        <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-200">
+        <h4 className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+          逐类召回（11 类代理/隧道工具）
+        </h4>
+        <div className="data-table-wrap">
           <table className="w-full text-left text-xs">
-            <thead className="sticky top-0 bg-slate-50 text-slate-500">
+            <thead>
               <tr>
                 <th className="px-3 py-2 font-medium">类别</th>
                 <th className="px-3 py-2 text-right font-medium">召回率</th>
@@ -218,7 +218,7 @@ function ResultView({ job }: { job: EvalJob }) {
             </thead>
             <tbody>
               {recalls.map(([name, recall]) => (
-                <tr key={name} className="border-t border-slate-100">
+                <tr key={name}>
                   <td className="px-3 py-2">
                     <Badge tone={labelTone(name)}>{TOOL_ZH[name] ?? name}</Badge>
                   </td>

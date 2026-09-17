@@ -9,13 +9,16 @@
     @apply h-full;
   }
   body {
-    @apply bg-slate-50 text-slate-800 antialiased;
+    @apply bg-slate-50 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200;
+  }
+  .dark {
+    color-scheme: dark;
   }
 }
 
 @layer components {
   .stat-value {
-    @apply text-2xl font-semibold tabular-nums text-slate-900;
+    @apply text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-100;
   }
 
   .app-shell {
@@ -25,16 +28,50 @@
       #f8fafc;
   }
 
+  .dark .app-shell {
+    background:
+      radial-gradient(circle at top right, rgba(59, 108, 246, 0.12), transparent 42%),
+      radial-gradient(circle at bottom left, rgba(148, 163, 184, 0.06), transparent 40%),
+      #020617;
+  }
+
   .auth-shell {
-    @apply flex min-h-full items-center justify-center px-4 py-10;
+    @apply relative flex min-h-full items-center justify-center px-4 py-10;
     background:
       radial-gradient(circle at 20% 20%, rgba(59, 108, 246, 0.18), transparent 35%),
       radial-gradient(circle at 80% 0%, rgba(37, 69, 173, 0.12), transparent 30%),
       linear-gradient(180deg, #eef4ff 0%, #f8fafc 45%, #f1f5f9 100%);
   }
 
+  .dark .auth-shell {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(59, 108, 246, 0.15), transparent 35%),
+      radial-gradient(circle at 80% 0%, rgba(37, 69, 173, 0.1), transparent 30%),
+      linear-gradient(180deg, #0f172a 0%, #020617 45%, #0f172a 100%);
+  }
+
   .auth-panel {
     animation: fade-up 0.45s ease-out;
+  }
+
+  .msg-error {
+    @apply rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-950/50 dark:text-rose-300;
+  }
+
+  .msg-success {
+    @apply flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300;
+  }
+
+  .data-table-wrap {
+    @apply max-h-72 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700;
+  }
+
+  .data-table-wrap thead {
+    @apply sticky top-0 bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400;
+  }
+
+  .data-table-wrap tbody tr {
+    @apply border-t border-slate-100 dark:border-slate-800;
   }
 }
 

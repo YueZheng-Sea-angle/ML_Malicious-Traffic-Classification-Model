@@ -46,7 +46,7 @@ export default function ResultsPage() {
       </div>
 
       {error ? (
-        <p className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>
+        <p className="msg-error">{error}</p>
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-5">
@@ -72,12 +72,14 @@ export default function ResultsPage() {
                   className={cn(
                     "flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors",
                     selected?.task_id === task.task_id
-                      ? "border-brand-500 bg-brand-50"
-                      : "border-slate-200 hover:bg-slate-50",
+                      ? "border-brand-500 bg-brand-50 dark:bg-brand-950/40"
+                      : "border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800/50",
                   )}
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-slate-800">{task.filename}</p>
+                    <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-200">
+                      {task.filename}
+                    </p>
                     <p className="text-xs text-slate-400">{formatTime(task.created_at)}</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
@@ -105,7 +107,9 @@ export default function ResultsPage() {
             ) : (
               <>
                 <section>
-                  <h4 className="mb-2 text-sm font-medium text-slate-700">关键特征贡献</h4>
+                  <h4 className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                    关键特征贡献
+                  </h4>
                   <div className="space-y-2">
                     {selected.result.top_features.map((feature) => (
                       <div key={feature.name} className="flex items-center gap-3">
@@ -122,12 +126,12 @@ export default function ResultsPage() {
                 </section>
 
                 <section>
-                  <h4 className="mb-2 text-sm font-medium text-slate-700">
+                  <h4 className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
                     流级结果（{selected.result.flow_count} 条）
                   </h4>
-                  <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-200">
+                  <div className="data-table-wrap">
                     <table className="w-full text-left text-xs">
-                      <thead className="sticky top-0 bg-slate-50 text-slate-500">
+                      <thead>
                         <tr>
                           <th className="px-3 py-2 font-medium">流标识</th>
                           <th className="px-3 py-2 font-medium">包数</th>
@@ -137,8 +141,8 @@ export default function ResultsPage() {
                       </thead>
                       <tbody>
                         {selected.result.flows.map((flow) => (
-                          <tr key={flow.flow_id} className="border-t border-slate-100">
-                            <td className="max-w-[220px] truncate px-3 py-2 font-mono text-[11px] text-slate-600">
+                          <tr key={flow.flow_id}>
+                            <td className="max-w-[220px] truncate px-3 py-2 font-mono text-[11px] text-slate-600 dark:text-slate-400">
                               {flow.flow_id}
                             </td>
                             <td className="px-3 py-2 tabular-nums text-slate-500">

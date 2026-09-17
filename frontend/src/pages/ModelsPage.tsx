@@ -43,7 +43,7 @@ export default function ModelsPage() {
   return (
     <div className="space-y-6">
       {error ? (
-        <p className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>
+        <p className="msg-error">{error}</p>
       ) : null}
 
       <Card>
@@ -55,11 +55,11 @@ export default function ModelsPage() {
           {models.map((model) => (
             <div
               key={model.model_id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 px-4 py-3"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 px-4 py-3 dark:border-slate-700"
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="font-medium text-slate-800">{model.name}</p>
+                  <p className="font-medium text-slate-800 dark:text-slate-200">{model.name}</p>
                   {model.model_id === activeId ? (
                     <Badge tone="success">
                       <CheckCircle2 className="mr-1 h-3 w-3" />
@@ -106,7 +106,7 @@ function Metric({ label, value }: { label: string; value: number | null }) {
   return (
     <div className="text-right">
       <p className="text-xs text-slate-400">{label}</p>
-      <p className="text-sm font-semibold tabular-nums text-slate-700">
+      <p className="text-sm font-semibold tabular-nums text-slate-700 dark:text-slate-300">
         {value == null ? "—" : formatPercent(value)}
       </p>
     </div>
