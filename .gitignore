@@ -32,6 +32,11 @@ artifacts/users.json
 *.ckpt
 *.npz
 
+# ---------- 模型权重入库例外（T1 A/B LightGBM，各约 6.8 MB）----------
+# 例外规则必须写在 *.pt 之后，后出现的规则优先
+!artifacts/models/malflow_datacon_tools.pt
+!artifacts/models/malflow_datacon_tools_ngram.pt
+
 # ---------- 数据集（体积大，不入库） ----------
 data/raw/
 data/processed/
